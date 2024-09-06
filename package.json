@@ -24,6 +24,7 @@
     "backend"
   ],
   "workspaces": [
+    "/apigw-talybushop",
     "/ms-orders-headers",
     "/ms-orders-details",
     "/ms-payments",
