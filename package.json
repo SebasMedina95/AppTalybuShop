@@ -1,0 +1,35 @@
+{
+  "name": "talybu-shop-monorepo",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Este monorepo contendrá los diferentes proyectos de la tienda Talybu Shop. La idea de este monorepo NO es tener funcionalidades generales y compartir código, la intención de este monorepo es centralizar en 'una sola app de node' los proyectos para tener un solo repositorio de GIT, de esta manera, para mantenibilidad y visibilidad de reclutadores sea más sencillo mirar el código. Trabajremos aplicaciones de NestJS usando base de datos Postgres en general",
+  "author": "Juan Sebastian Medina Toro <jsebastian19952011@gmail.com>",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/tuusuario/my-monorepo.git"
+  },
+  "keywords": [
+    "products",
+    "orders",
+    "headers",
+    "details",
+    "payments",
+    "users",
+    "auth",
+    "nestjs",
+    "postgres",
+    "docker",
+    "kubernets",
+    "backend"
+  ],
+  "workspaces": [
+    "nestjs-app-1",
+    "nestjs-app-2",
+    "nestjs-app-3",
+    "..."
+  ],
+  "dependencies": {
+    "talybu-shop-monorepo": "file:"
+  }
+}
