@@ -1,0 +1,78 @@
+// This is your Prisma schema file 
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries  or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// enum ValidSizes {
+//   XS
+//   S
+//   M
+//   L
+//   XL
+//   XXL
+//   XXXL
+//   STANDART
+//   MEDIUM
+//   BIG
+//   NA
+// }
+
+// enum ValidTypes {
+//   shirts
+//   jeans
+//   pants
+//   hoodies
+//   hats
+//   shoes
+//   elegant
+//   technology
+//   home
+//   others
+// }
+
+// enum ValidGenders {
+//   mens
+//   womens
+//   childs
+//   unisex
+//   technology
+//   home
+//   others
+// }
+
+model TBL_CATEGORIES {
+  id           Int            @id @default(autoincrement())
+  name         String         @unique @db.VarChar(100)
+  status       Boolean        @default(true)
+  description  String?        @db.Text
+  userCreateAt String?        @db.VarChar(30)
+  createDateAt DateTime?
+  userUpdateAt String?        @db.VarChar(30)
+  updateDateAt DateTime?
+  TBL_SUBCATEGORIES TBL_SUBCATEGORIES[]
+}
+
+model TBL_SUBCATEGORIES {
+  id           Int            @id @default(autoincrement())
+  name         String         @unique @db.VarChar(100)
+  status       Boolean        @default(true)
+  description  String?        @db.Text
+  userCreateAt String?        @db.VarChar(30)
+  createDateAt DateTime?
+  userUpdateAt String?        @db.VarChar(30)
+  updateDateAt DateTime?
+
+  category   TBL_CATEGORIES @relation(fields: [categoryId], references: [id])
+  categoryId Int
+
+}
