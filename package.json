@@ -23,14 +23,6 @@
     "kubernets",
     "backend"
   ],
-  "workspaces": [
-    "/apigw-talybushop",
-    "/ms-orders-headers",
-    "/ms-orders-details",
-    "/ms-payments",
-    "/ms-products",
-    "/ms-supplies"
-  ],
   "dependencies": {
     "talybu-shop-monorepo": "file:"
   }
