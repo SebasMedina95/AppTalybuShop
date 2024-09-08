@@ -13,66 +13,112 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// enum ValidSizes {
-//   XS
-//   S
-//   M
-//   L
-//   XL
-//   XXL
-//   XXXL
-//   STANDART
-//   MEDIUM
-//   BIG
-//   NA
-// }
-
-// enum ValidTypes {
-//   shirts
-//   jeans
-//   pants
-//   hoodies
-//   hats
-//   shoes
-//   elegant
-//   technology
-//   home
-//   others
-// }
-
-// enum ValidGenders {
-//   mens
-//   womens
-//   childs
-//   unisex
-//   technology
-//   home
-//   others
-// }
+enum ValidSizes {
+  XS
+  S
+  M
+  L
+  XL
+  XXL
+  XXXL
+  UNIQUE
+  STANDART
+  MEDIUM
+  BIG
+  NA
+}
 
 model TBL_CATEGORIES {
-  id           Int            @id @default(autoincrement())
-  name         String         @unique @db.VarChar(100)
-  status       Boolean        @default(true)
-  description  String?        @db.Text
-  userCreateAt String?        @db.VarChar(30)
+  id           Int       @id @default(autoincrement())
+  name         String    @unique @db.VarChar(100)
+  status       Boolean   @default(true)
+  description  String?   @db.Text
+  userCreateAt String?   @db.VarChar(30)
   createDateAt DateTime?
-  userUpdateAt String?        @db.VarChar(30)
+  userUpdateAt String?   @db.VarChar(30)
   updateDateAt DateTime?
+
   TBL_SUBCATEGORIES TBL_SUBCATEGORIES[]
+  TBL_PRODUCTS      TBL_PRODUCTS[]
 }
 
 model TBL_SUBCATEGORIES {
-  id           Int            @id @default(autoincrement())
-  name         String         @unique @db.VarChar(100)
-  status       Boolean        @default(true)
-  description  String?        @db.Text
-  userCreateAt String?        @db.VarChar(30)
+  id           Int       @id @default(autoincrement())
+  name         String    @unique @db.VarChar(100)
+  status       Boolean   @default(true)
+  description  String?   @db.Text
+  userCreateAt String?   @db.VarChar(30)
   createDateAt DateTime?
-  userUpdateAt String?        @db.VarChar(30)
+  userUpdateAt String?   @db.VarChar(30)
   updateDateAt DateTime?
 
   category   TBL_CATEGORIES @relation(fields: [categoryId], references: [id])
   categoryId Int
 
+  TBL_PRODUCTS TBL_PRODUCTS[]
+}
+
+model TBL_PRODUCTS {
+  id                Int          @id @default(autoincrement())
+  description       String       @db.Text
+  inStock           Int
+  price             Float
+  sizes             ValidSizes[]
+  slug              String       @unique @db.VarChar(500)
+  tags              String       @db.VarChar(500)
+  colors            String       @db.VarChar(500)
+  title             String       @unique @db.VarChar(200)
+  type              String       @db.VarChar(500)
+  brand             String       @db.VarChar(100)
+  isDiscount        Boolean?     @default(false)
+  percentDiscount   Float?
+  discountStartDate DateTime?
+  discountEndDate   DateTime?
+  is_fragile        Boolean
+  views             Int          @default(0)
+  monthsWarranty    Int
+  status            Boolean      @default(true)
+  userCreateAt      String?      @db.VarChar(30)
+  createDateAt      DateTime?
+  userUpdateAt      String?      @db.VarChar(30)
+  updateDateAt      DateTime?
+
+  category   TBL_CATEGORIES @relation(fields: [categoryId], references: [id])
+  categoryId Int
+
+  subCategory   TBL_SUBCATEGORIES @relation(fields: [subCategoryId], references: [id])
+  subCategoryId Int
+
+  provider   TBL_PROVIDERS @relation(fields: [providerId], references: [id])
+  providerId Int
+
+  TBL_IMAGES TBL_IMAGES[]
+}
+
+model TBL_IMAGES {
+  id           Int       @id @default(autoincrement())
+  url          String    @db.Text
+  userCreateAt String?   @db.VarChar(30)
+  createDateAt DateTime?
+
+  product   TBL_PRODUCTS @relation(fields: [productId], references: [id])
+  productId Int
+}
+
+model TBL_PROVIDERS {
+  id           Int       @id @default(autoincrement())
+  name         String    @unique @db.VarChar(100)
+  status       Boolean   @default(true)
+  address      String?   @db.VarChar(200)
+  phone1       String?   @db.VarChar(40)
+  phone2       String?   @db.VarChar(40)
+  email1       String?   @db.VarChar(150)
+  email2       String?   @db.VarChar(150)
+  description  String?   @db.Text
+  userCreateAt String?   @db.VarChar(30)
+  createDateAt DateTime?
+  userUpdateAt String?   @db.VarChar(30)
+  updateDateAt DateTime?
+
+  TBL_PRODUCTS TBL_PRODUCTS[]
 }
