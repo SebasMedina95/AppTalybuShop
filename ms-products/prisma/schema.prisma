@@ -31,6 +31,9 @@ enum ValidSizes {
 model TBL_CATEGORIES {
   id           Int       @id @default(autoincrement())
   name         String    @unique @db.VarChar(100)
+  icon         String    @unique @db.VarChar(250)
+  url          String    @unique @db.VarChar(250)
+  tags         String    @db.VarChar(300)
   status       Boolean   @default(true)
   description  String?   @db.Text
   userCreateAt String?   @db.VarChar(30)
@@ -45,6 +48,7 @@ model TBL_CATEGORIES {
 model TBL_SUBCATEGORIES {
   id           Int       @id @default(autoincrement())
   name         String    @unique @db.VarChar(100)
+  url          String    @unique @db.VarChar(250)
   status       Boolean   @default(true)
   description  String?   @db.Text
   userCreateAt String?   @db.VarChar(30)

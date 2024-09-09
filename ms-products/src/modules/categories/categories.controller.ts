@@ -1,34 +1,48 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
-import { CategoriesService } from './categories.service';
+import { Controller } from '@nestjs/common';
+import { MessagePattern, Payload } from '@nestjs/microservices';
+
 import { CreateCategoryDto } from './dto/create-category.dto';
 import { UpdateCategoryDto } from './dto/update-category.dto';
+import { PageOptionsDto } from '../../helpers/paginations/dto/page-options.dto';
+
+import { CategoriesService } from './categories.service';
 
 @Controller('categories')
 export class CategoriesController {
   constructor(private readonly categoriesService: CategoriesService) {}
 
-  @Post()
-  create(@Body() createCategoryDto: CreateCategoryDto) {
+  @MessagePattern({ cmd: 'create_category' })
+  async create(
+    @Payload() createCategoryDto: CreateCategoryDto
+  ) {
     return this.categoriesService.create(createCategoryDto);
   }
 
-  @Get()
-  findAll() {
+  @MessagePattern({ cmd: 'get_category_paginated' })
+  async findAll(
+    @Payload() pageOptionsDto: PageOptionsDto
+  ) {
     return this.categoriesService.findAll();
   }
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
+  @MessagePattern({ cmd: 'get_category_by_id' })
+  async findOne(
+    @Payload('id') id: number
+  ) {
     return this.categoriesService.findOne(+id);
   }
 
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateCategoryDto: UpdateCategoryDto) {
-    return this.categoriesService.update(+id, updateCategoryDto);
+  @MessagePattern({ cmd: 'update_category' })
+  async update(
+    @Payload() updateCategoryDto: UpdateCategoryDto
+  ) {
+    return this.categoriesService.update(updateCategoryDto.id, updateCategoryDto);
   }
 
-  @Delete(':id')
-  remove(@Param('id') id: string) {
+  @MessagePattern({ cmd: 'delete_logic_category' })
+  async remove(
+    @Payload('id') id: number
+  ) {
     return this.categoriesService.remove(+id);
   }
 }
