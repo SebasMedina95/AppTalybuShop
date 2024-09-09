@@ -24,6 +24,12 @@
     "backend"
   ],
   "dependencies": {
+    "cloudinary": "^2.4.0",
+    "dotenv": "^16.4.5",
+    "joi": "^17.13.3",
+    "multer": "^1.4.5-lts.1",
+    "reflect-metadata": "^0.2.2",
+    "streamifier": "^0.1.1",
     "talybu-shop-monorepo": "file:"
   }
 }
