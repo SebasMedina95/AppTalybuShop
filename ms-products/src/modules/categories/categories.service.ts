@@ -222,11 +222,76 @@ export class CategoriesService {
 
   async update(id: number, updateCategoryDto: UpdateCategoryDto) {
     
-    return new ApiTransactionResponse(
-      null,
-      EResponseCodes.INFO,
-      "Comunicación - Actualización de categorías."
-    );
+    try {
+      
+      //? Verificamos que exista el ID solicitado
+      const existCategoryById = await this.findOne(id);
+
+      if( existCategoryById.data == null ){
+        return new ApiTransactionResponse(
+          null,
+          EResponseCodes.FAIL,
+          `No pudo ser encontrado una categoría con el ID ${id}`
+        );
+      }
+
+      //? Verificamos que no se repita el nombre que es Unique ni la URL
+      const urlConvert: string = optimizeForSEO(updateCategoryDto.name);
+
+      const existCategoryByNameOrUrl = await this.prisma.tBL_CATEGORIES.findFirst({
+        where: {
+          OR: [
+            { name: updateCategoryDto.name.trim().toUpperCase() },
+            { url: urlConvert }
+          ]
+        }
+      });
+
+      if( existCategoryByNameOrUrl ){
+        if( existCategoryByNameOrUrl.id != id ){
+          return new ApiTransactionResponse(
+            null,
+            EResponseCodes.FAIL,
+            `Ya existe el nombre de la categoría`
+          );
+        }
+      }
+
+      //? Llegamos hasta acá, actualizamos entonces:
+      const updateCategory = await this.prisma.tBL_CATEGORIES.update({
+        where: { id },
+        data: {
+          name: updateCategoryDto.name,
+          url: urlConvert,
+          icon: updateCategoryDto.icon,
+          tags: JSON.stringify(updateCategoryDto.tags),
+          description: updateCategoryDto.description,
+          userUpdateAt: "123456789", //TODO -> Falta el tema de la auth.
+          updateDateAt: new Date(),
+        }
+      });
+
+      return new ApiTransactionResponse(
+        updateCategory,
+        EResponseCodes.OK,
+        "Categoría actualizada correctamente"
+      );
+      
+    } catch (error) {
+
+      this.logger.log(`Ocurrió un error al intentar actualizar la categoría: ${error}`);
+      return new ApiTransactionResponse(
+        error,
+        EResponseCodes.FAIL,
+        "Ocurrió un error al intentar actualizar la categoría"
+      );
+      
+    } finally {
+      
+      this.logger.log(`Actualización de categoría finalizada`);
+      await this.prisma.$disconnect();
+
+    }
     
   }
 
