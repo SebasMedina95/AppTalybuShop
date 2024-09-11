@@ -22,7 +22,7 @@ export class CategoriesController {
   async findAll(
     @Payload() pageOptionsDto: PageOptionsDto
   ) {
-    return this.categoriesService.findAll();
+    return this.categoriesService.findAll(pageOptionsDto);
   }
 
   @MessagePattern({ cmd: 'get_category_by_id' })

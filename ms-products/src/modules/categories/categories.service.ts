@@ -1,4 +1,5 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable,
+         Logger } from '@nestjs/common';
 
 import { CreateCategoryDto } from './dto/create-category.dto';
 import { UpdateCategoryDto } from './dto/update-category.dto';
@@ -6,6 +7,9 @@ import { UpdateCategoryDto } from './dto/update-category.dto';
 import { MySqlErrorsExceptions } from '../../helpers/errors/exceptions-sql';
 import { CustomError } from '../../helpers/errors/custom.error';
 import { optimizeForSEO } from '../../helpers/convert_url/convertForUrl';
+import { PageOptionsDto } from '../../helpers/paginations/dto/page-options.dto';
+import { PageDto } from '../../helpers/paginations/dto/page.dto';
+import { PageMetaDto } from '../../helpers/paginations/dto/page-meta.dto';
 
 import { ApiTransactionResponse } from '../../util/ApiResponse';
 import { EResponseCodes } from '../../constants/ResponseCodesEnum';
@@ -89,13 +93,77 @@ export class CategoriesService {
     
   }
 
-  async findAll() {
+  async findAll(pageOptionsDto: PageOptionsDto): Promise<PageDto<ICategory> | Object> {
     
-    return new ApiTransactionResponse(
-      null,
-      EResponseCodes.INFO,
-      "Comunicación - Mostrar categorías paginadas y con filtro."
-    );
+    const { take, page, search, order, sort } = pageOptionsDto;
+    let getCategories: ICategory[] = [];
+    let itemCount: number = 0;
+    let whereCondition = {};
+
+    //* Si no se especifican los valores, se usan los predeterminados
+    const takeValue = take || 10;  // Elementos por página
+    const pageValue = page || 1;   // Página actual
+    const skip = (pageValue - 1) * takeValue;  // Calcular el offset para Prisma
+    const orderValue = order || 'asc';  // Orden predeterminado ascendente
+    const sortBy = sort || 'id';  // Columna por defecto para ordenar
+
+    try {
+
+      //? Si vamos a realizar además de la paginación una búsqueda
+      if( search && search !== "" && search !== null && search !== undefined ){
+
+        whereCondition = {
+          OR: [
+            { name: { contains: search, mode: 'insensitive' } },
+            { description: { contains: search, mode: 'insensitive' } },
+            { url: { contains: search, mode: 'insensitive' } },
+            { icon: { contains: search, mode: 'insensitive' } },
+          ],
+        };
+
+      }
+
+      //? Consultar con Prisma la paginación, orden y búsqueda
+      const [items, totalItems] = await Promise.all([
+        this.prisma.tBL_CATEGORIES.findMany({
+          where: whereCondition,
+          take: takeValue,
+          skip: skip,
+          orderBy: {
+            [sortBy]: orderValue,
+          },
+        }),
+        this.prisma.tBL_CATEGORIES.count({ where: whereCondition }),
+      ]);
+
+      //? Organizamos los parámetros obtenidos para devolver en la consulta
+      //? Convertimos también el campo 'tags' de string a array en cada item
+      const getCategories = items.map((item) => {
+        return {
+          ...item,
+          tags: item.tags ? JSON.parse(item.tags) : [],  // Convertir 'tags' de JSON string a array
+        };
+      });
+      itemCount = totalItems;
+
+      const pageMetaDto = new PageMetaDto({ itemCount, pageOptionsDto });
+      return new PageDto(getCategories, pageMetaDto);
+      
+    } catch (error) {
+
+      this.logger.log(`Ocurrió un error al intentar obtener listado de categorías: ${error}`);
+      return new ApiTransactionResponse(
+        error,
+        EResponseCodes.FAIL,
+        "Ocurrió un error al intentar obtener el listado de categorías"
+      );
+      
+    } finally {
+      
+      this.logger.log(`Listado de categorías finalizada`);
+      await this.prisma.$disconnect();
+
+    }
     
   }
 

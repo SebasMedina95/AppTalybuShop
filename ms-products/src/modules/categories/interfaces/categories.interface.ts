@@ -2,7 +2,7 @@ export interface ICategory {
     id?: number;
     name: string;
     url: string;
-    tags: string;
+    tags: string | string[];
     description: string;
 
     userCreateAt?: string;
