@@ -98,4 +98,25 @@ export class CategoriesController {
     
   }
 
+  @Get('/get-subcategories-by-id/:id')
+  async get_sub_categories_by_category(
+    @Param('id') id: number
+  ){
+
+    try {
+
+      return this.productsClient.send({ cmd: 'get_sub_categories_by_category' }, { 
+        id 
+      }).pipe(
+          catchError(err => { throw new RpcException(err) })
+        )
+
+    } catch (error) {
+
+      throw new RpcException(error);
+
+    } 
+    
+  }
+
 }

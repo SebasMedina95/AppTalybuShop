@@ -29,7 +29,7 @@ export class CategoriesController {
   async findOne(
     @Payload('id') id: number
   ) {
-    return this.categoriesService.findOne(+id);
+    return this.categoriesService.findOne(id);
   }
 
   @MessagePattern({ cmd: 'update_category' })
@@ -43,6 +43,14 @@ export class CategoriesController {
   async remove(
     @Payload('id') id: number
   ) {
-    return this.categoriesService.remove(+id);
+    return this.categoriesService.remove(id);
   }
+
+  @MessagePattern({ cmd: 'get_sub_categories_by_category' })
+  async findSubCategories(
+    @Payload('id') id: number
+  ){
+    return this.categoriesService.findSubCategories(id);
+  }
+
 }
