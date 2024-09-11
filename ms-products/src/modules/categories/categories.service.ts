@@ -167,13 +167,56 @@ export class CategoriesService {
     
   }
 
-  async findOne(id: number) {
+  async findOne(id: number): Promise<ApiTransactionResponse<ICategory | string>> {
     
-    return new ApiTransactionResponse(
-      null,
-      EResponseCodes.INFO,
-      "Comunicación - Mostrar categoría por ID."
-    );
+    try {
+      
+      const getCategory = await this.prisma.tBL_CATEGORIES.findFirst({
+        where: {
+          AND: [
+            { id },
+            { status: true }
+          ]
+        }
+      });
+
+      if( !getCategory || getCategory == null ){
+        return new ApiTransactionResponse(
+          null,
+          EResponseCodes.FAIL,
+          `No pudo ser encontrado una categoría con el ID ${id}`
+        );
+      }
+
+      //? Hagamos la conversión para los tags
+      const categoryResponse = getCategory
+      ? {
+          ...getCategory,
+          tags: getCategory.tags ? JSON.parse(getCategory.tags) : [],  // Convertir 'tags' de JSON string a array
+        }
+      : null;
+
+      return new ApiTransactionResponse(
+        categoryResponse,
+        EResponseCodes.OK,
+        `Categoría obtenida correctamente`
+      );
+
+    } catch (error) {
+
+      this.logger.log(`Ocurrió un error al intentar obtener una categoría por su ID: ${error}`);
+      return new ApiTransactionResponse(
+        error,
+        EResponseCodes.FAIL,
+        "Ocurrió un error al intentar obtener una categoría por su ID"
+      );
+      
+    } finally {
+      
+      this.logger.log(`Obtener categoría por ID finalizada`);
+      await this.prisma.$disconnect();
+
+    }
     
   }
 
