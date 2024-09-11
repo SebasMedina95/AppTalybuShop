@@ -7,7 +7,7 @@ import { IsArray, IsNotEmpty,
 
 export class CreateCategoryDto {
 
-    @IsString({ message: "El nombre la categoría debe ser un String válido" })
+    @IsString({ message: "El nombre de la categoría debe ser un String válido" })
     @MinLength(1, { message: "El nombre la categoría además de requerida debe tener al menos 1 caracter" })
     @MaxLength(100, { message: "El nombre la categoría además de requerida no debe sobre pasar los 500 caracteres" })
     @IsNotEmpty({ message: "El nombre la categoría es un campo requerido" })
@@ -17,6 +17,11 @@ export class CreateCategoryDto {
     @IsArray({ message: "Debe ser un arreglo de Strings" })
     @IsNotEmpty()
     public tags: string;
+
+    @IsString({ message: "El ícono de la categoría debe ser un String válido" })
+    @MaxLength(300, { message: "El ícono de la categoría además de requerida no debe sobre pasar los 500 caracteres" })
+    @IsOptional()
+    public icon: string;
 
     @IsString({ message: "El nombre la categoría debe ser un String válido" })
     @MaxLength(5000, { message: "El nombre la categoría además de requerida no debe sobre pasar los 500 caracteres" })

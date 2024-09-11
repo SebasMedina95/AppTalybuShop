@@ -31,7 +31,7 @@ enum ValidSizes {
 model TBL_CATEGORIES {
   id           Int       @id @default(autoincrement())
   name         String    @unique @db.VarChar(100)
-  icon         String    @unique @db.VarChar(250)
+  icon         String    @db.VarChar(250)
   url          String    @unique @db.VarChar(250)
   tags         String    @db.VarChar(300)
   status       Boolean   @default(true)

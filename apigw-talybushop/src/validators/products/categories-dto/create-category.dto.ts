@@ -18,6 +18,11 @@ export class CreateCategoryDto {
     @IsNotEmpty()
     public tags: string;
 
+    @IsString({ message: "El ícono de la categoría debe ser un String válido" })
+    @MaxLength(300, { message: "El ícono de la categoría además de requerida no debe sobre pasar los 500 caracteres" })
+    @IsOptional()
+    public icon: string;
+
     @IsString({ message: "El nombre la categoría debe ser un String válido" })
     @MaxLength(5000, { message: "El nombre la categoría además de requerida no debe sobre pasar los 500 caracteres" })
     @IsOptional()
