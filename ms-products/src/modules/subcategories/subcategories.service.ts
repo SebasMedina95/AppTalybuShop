@@ -299,6 +299,51 @@ export class SubcategoriesService {
   }
 
   async remove(id: number) {
-    return `This action removes a #${id} subcategory`;
+    
+    try {
+      
+      //Verificamos que exista el ID solicitado
+      const existSubCategoryById = await this.findOne(id);
+
+      if( existSubCategoryById.data == null ){
+        return new ApiTransactionResponse(
+          null,
+          EResponseCodes.FAIL,
+          `No pudo ser encontrado una sub categoría con el ID ${id}`
+        );
+      }
+
+      //Llegamos hasta acá, actualizamos entonces:
+      const updateSubCategory = await this.prisma.tBL_SUBCATEGORIES.update({
+        where: { id },
+        data: {
+          status: false,
+          userUpdateAt: "123456789", //TODO -> Falta el tema de la auth.
+          updateDateAt: new Date(),
+        }
+      });
+
+      return new ApiTransactionResponse(
+        updateSubCategory,
+        EResponseCodes.OK,
+        "Sub Categoría eliminada correctamente"
+      );
+      
+    } catch (error) {
+
+      this.logger.log(`Ocurrió un error al intentar eliminar lógicamente la sub categoría: ${error}`);
+      return new ApiTransactionResponse(
+        error,
+        EResponseCodes.FAIL,
+        "Ocurrió un error al intentar eliminar lógicamente la sub categoría"
+      );
+      
+    } finally {
+      
+      this.logger.log(`Eliminación lógica de sub categoría finalizada`);
+      await this.prisma.$disconnect();
+
+    }
+    
   }
 }

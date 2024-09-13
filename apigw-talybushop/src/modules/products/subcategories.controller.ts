@@ -1,5 +1,6 @@
 import { Body, 
          Controller, 
+         Delete, 
          Get, 
          Inject, 
          Param, 
@@ -56,7 +57,7 @@ export class SubCategoriesController{
             id 
         }).pipe(
             catchError(err => { throw new RpcException(err) })
-            )
+        )
 
         } catch (error) {
 
@@ -76,9 +77,21 @@ export class SubCategoriesController{
         id,
         ...updateCategoryDto
         }).pipe(
-        catchError(err => { throw new RpcException(err) })
+            catchError(err => { throw new RpcException(err) })
         )
         
+    }
+
+    @Delete('/delete/:id')
+    async deleteSubCategory(
+        @Param('id') id: number
+    ){
+        
+        return this.productsClient.send({ cmd: 'delete_logic_sub_category' }, {
+        id
+        }).pipe(
+            catchError(err => { throw new RpcException(err) })
+        )
         
     }
 
