@@ -9,6 +9,9 @@ import { EResponseCodes } from '../../constants/ResponseCodesEnum';
 import { MySqlErrorsExceptions } from '../../helpers/errors/exceptions-sql';
 import { CustomError } from '../../helpers/errors/custom.error';
 import { optimizeForSEO } from '../../helpers/convert_url/convertForUrl';
+import { PageOptionsDto } from '../../helpers/paginations/dto/page-options.dto';
+import { PageDto } from '../../helpers/paginations/dto/page.dto';
+import { PageMetaDto } from '../../helpers/paginations/dto/page-meta.dto';
 
 import { ISubCategory } from './interfaces/subcategories.interfaces';
 
@@ -99,8 +102,80 @@ export class SubcategoriesService {
 
   }
 
-  async findAll() {
-    return `This action returns all subcategories`;
+  async findAll(pageOptionsDto: PageOptionsDto): Promise<PageDto<ISubCategory> | Object> {
+    
+    const { take, page, search, order, sort } = pageOptionsDto;
+    let getSubCategories: ISubCategory[] = [];
+    let itemCount: number = 0;
+    let whereCondition = {};
+
+    //* Si no se especifican los valores, se usan los predeterminados
+    const takeValue = take || 10;  // Elementos por página
+    const pageValue = page || 1;   // Página actual
+    const skip = (pageValue - 1) * takeValue;  // Calcular el offset para Prisma
+    const orderValue = order || 'asc';  // Orden predeterminado ascendente
+    const sortBy = sort || 'id';  // Columna por defecto para ordenar
+
+    try {
+
+      //? Si vamos a realizar además de la paginación una búsqueda
+      if( search && search !== "" && search !== null && search !== undefined ){
+
+        whereCondition = {
+          OR: [
+            { name: { contains: search, mode: 'insensitive' } },
+            { description: { contains: search, mode: 'insensitive' } },
+            { url: { contains: search, mode: 'insensitive' } },
+            // Búsqueda en los campos de la categoría relacionada
+            { category: { name: { contains: search, mode: 'insensitive' } } },
+            { category: { icon: { contains: search, mode: 'insensitive' } } },
+            { category: { url: { contains: search, mode: 'insensitive' } } },
+            { category: { description: { contains: search, mode: 'insensitive' } } }
+          ],
+        };
+
+      }
+
+      //? Consultar con Prisma la paginación, orden y búsqueda
+      const [items, totalItems] = await Promise.all([
+        this.prisma.tBL_SUBCATEGORIES.findMany({
+          where: whereCondition,
+          take: takeValue,
+          skip: skip,
+          orderBy: {
+            [sortBy]: orderValue,
+          },
+          include: {
+            category: true
+          }
+        }),
+        this.prisma.tBL_SUBCATEGORIES.count({ where: whereCondition }),
+      ]);
+
+      //? Organizamos los parámetros obtenidos para devolver en la consulta
+      //? Convertimos también el campo 'tags' de string a array en cada item
+      getSubCategories = items;
+      itemCount = totalItems;
+
+      const pageMetaDto = new PageMetaDto({ itemCount, pageOptionsDto });
+      return new PageDto(getSubCategories, pageMetaDto);
+      
+    } catch (error) {
+
+      this.logger.log(`Ocurrió un error al intentar obtener listado de sub categorías: ${error}`);
+      return new ApiTransactionResponse(
+        error,
+        EResponseCodes.FAIL,
+        "Ocurrió un error al intentar obtener el listado de sub categorías"
+      );
+      
+    } finally {
+      
+      this.logger.log(`Listado de sub categorías finalizada`);
+      await this.prisma.$disconnect();
+
+    }
+    
   }
 
   async findOne(id: number) {

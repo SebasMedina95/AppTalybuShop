@@ -35,12 +35,12 @@ export class CategoriesController {
     
   }
 
-  @Get('/get-paginated')
+  @Post('/get-paginated')
   async getAllCategories(
     @Body() pageOptionsDto: PageOptionsDto
   ){
     //Lo que tenemos dentro del send, el primer argumento es el nombre que le dimos en el @MessagePattern
-    //que en este caso fue { cmd: 'get_categories_paginated' }, y el segundo es el Payload, es decir, el cuerpo
+    //que en este caso fue { cmd: 'get_category_paginated' }, y el segundo es el Payload, es decir, el cuerpo
     //de la petición para enviar los parámetros
     return this.productsClient.send({ cmd: 'get_category_paginated' }, pageOptionsDto )
       .pipe(

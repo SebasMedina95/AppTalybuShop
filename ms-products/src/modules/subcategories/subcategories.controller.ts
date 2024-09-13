@@ -20,7 +20,7 @@ export class SubcategoriesController {
   async findAll(
     @Payload() pageOptionsDto: PageOptionsDto
   ) {
-    return this.subcategoriesService.findAll();
+    return this.subcategoriesService.findAll(pageOptionsDto);
   }
 
   @MessagePattern({ cmd: 'get_sub_category_by_id' })
