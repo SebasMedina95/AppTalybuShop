@@ -225,7 +225,77 @@ export class SubcategoriesService {
   }
 
   async update(id: number, updateSubcategoryDto: UpdateSubcategoryDto) {
-    return `This action updates a #${id} subcategory`;
+    
+    try {
+
+      //? Verificamos que exista el ID solicitado
+      const existCategoryById = await this.findOne(id);
+
+      if( existCategoryById.data == null ){
+        return new ApiTransactionResponse(
+          null,
+          EResponseCodes.FAIL,
+          `No pudo ser encontrado una sub categoría con el ID ${id}`
+        );
+      }
+
+      //? Verificamos que no se repita el nombre que es Unique ni la URL
+      const urlConvert: string = optimizeForSEO(updateSubcategoryDto.name);
+
+      const existSubCategoryByNameOrUrl = await this.prisma.tBL_SUBCATEGORIES.findFirst({
+        where: {
+          OR: [
+            { name: updateSubcategoryDto.name.trim().toUpperCase() },
+            { url: urlConvert }
+          ]
+        }
+      });
+
+      if( existSubCategoryByNameOrUrl ){
+        if( existSubCategoryByNameOrUrl.id != id ){
+          return new ApiTransactionResponse(
+            null,
+            EResponseCodes.FAIL,
+            `Ya existe el nombre de la sub categoría`
+          );
+        }
+      }
+
+      //? Llegamos hasta acá, actualizamos entonces:
+      const updateSubCategory = await this.prisma.tBL_SUBCATEGORIES.update({
+        where: { id },
+        data: {
+          categoryId: updateSubcategoryDto.categoryId,
+          name: updateSubcategoryDto.name,
+          url: urlConvert,
+          description: updateSubcategoryDto.description,
+          userUpdateAt: "123456789", //TODO -> Falta el tema de la auth.
+          updateDateAt: new Date(),
+        }
+      });
+
+      return new ApiTransactionResponse(
+        updateSubCategory,
+        EResponseCodes.OK,
+        "Sub Categoría actualizada correctamente"
+      );
+      
+    } catch (error) {
+
+      this.logger.log(`Ocurrió un error al intentar actualizar la sub categoría: ${error}`);
+      return new ApiTransactionResponse(
+        error,
+        EResponseCodes.FAIL,
+        "Ocurrió un error al intentar actualizar la sub categoría"
+      );
+      
+    } finally {
+      
+      this.logger.log(`Actualización de sub categoría finalizada`);
+      await this.prisma.$disconnect();
+
+    }
+
   }
 
   async remove(id: number) {

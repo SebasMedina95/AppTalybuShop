@@ -3,10 +3,12 @@ import { Body,
          Get, 
          Inject, 
          Param, 
+         Patch, 
          Post } from "@nestjs/common";
 import { ClientProxy, RpcException } from "@nestjs/microservices";
 import { PRODUCTS_SERVICE } from "../../config/services";
 import { CreateSubCategoryDto } from "../../validators/products/sub-categories-dto/create-sub-category.dto";
+import { UpdateSubCategoryDto } from "../../validators/products/sub-categories-dto/update-sub-category.dto";
 import { catchError } from "rxjs";
 import { PageOptionsDto } from "src/helpers/paginations/dto/page-options.dto";
 
@@ -44,7 +46,7 @@ export class SubCategoriesController{
     }
 
     @Get('/get-by-id/:id')
-    async getCategoryById(
+    async getSubCategoryById(
         @Param('id') id: number
     ){
 
@@ -61,6 +63,22 @@ export class SubCategoriesController{
         throw new RpcException(error);
 
         } 
+        
+    }
+
+    @Patch('/update/:id')
+    async updateSubCategory(
+        @Param('id') id: number,
+        @Body() updateCategoryDto: UpdateSubCategoryDto
+    ){
+        
+        return this.productsClient.send({ cmd: 'update_sub_category' }, {
+        id,
+        ...updateCategoryDto
+        }).pipe(
+        catchError(err => { throw new RpcException(err) })
+        )
+        
         
     }
 
