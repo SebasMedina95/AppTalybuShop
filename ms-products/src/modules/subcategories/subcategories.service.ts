@@ -178,8 +178,50 @@ export class SubcategoriesService {
     
   }
 
-  async findOne(id: number) {
-    return `This action returns a #${id} subcategory`;
+  async findOne(id: number): Promise<ApiTransactionResponse<ISubCategory | string>> {
+    
+    try {
+      
+      const getSubCategory = await this.prisma.tBL_SUBCATEGORIES.findFirst({
+        where: {
+          AND: [
+            { id },
+            { status: true }
+          ]
+        },
+        include: { category: true }
+      });
+
+      if( !getSubCategory || getSubCategory == null ){
+        return new ApiTransactionResponse(
+          null,
+          EResponseCodes.FAIL,
+          `No pudo ser encontrado una sub categoría con el ID ${id}`
+        );
+      }
+
+      return new ApiTransactionResponse(
+        getSubCategory,
+        EResponseCodes.OK,
+        `Sub Categoría obtenida correctamente`
+      );
+
+    } catch (error) {
+
+      this.logger.log(`Ocurrió un error al intentar obtener una sub categoría por su ID: ${error}`);
+      return new ApiTransactionResponse(
+        error,
+        EResponseCodes.FAIL,
+        "Ocurrió un error al intentar obtener una sub categoría por su ID"
+      );
+      
+    } finally {
+      
+      this.logger.log(`Obtener sub categoría por ID finalizada`);
+      await this.prisma.$disconnect();
+
+    }
+    
   }
 
   async update(id: number, updateSubcategoryDto: UpdateSubcategoryDto) {

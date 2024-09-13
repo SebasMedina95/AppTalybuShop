@@ -1,6 +1,8 @@
 import { Body, 
          Controller, 
+         Get, 
          Inject, 
+         Param, 
          Post } from "@nestjs/common";
 import { ClientProxy, RpcException } from "@nestjs/microservices";
 import { PRODUCTS_SERVICE } from "../../config/services";
@@ -39,6 +41,27 @@ export class SubCategoriesController{
         .pipe(
             catchError(err => { throw new RpcException(err) })
         )
+    }
+
+    @Get('/get-by-id/:id')
+    async getCategoryById(
+        @Param('id') id: number
+    ){
+
+        try {
+
+        return this.productsClient.send({ cmd: 'get_sub_category_by_id' }, { 
+            id 
+        }).pipe(
+            catchError(err => { throw new RpcException(err) })
+            )
+
+        } catch (error) {
+
+        throw new RpcException(error);
+
+        } 
+        
     }
 
 }
