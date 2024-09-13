@@ -1,8 +1,8 @@
 import { PartialType } from '@nestjs/mapped-types';
-import { CreateSubcategoryDto } from './create-subcategory.dto';
+import { CreateSubCategoryDto } from './create-sub-category.dto';
 import { IsNumber, IsPositive } from 'class-validator';
 
-export class UpdateSubcategoryDto extends PartialType(CreateSubcategoryDto) {
+export class UpdateSubCategoryDto extends PartialType(CreateSubCategoryDto) {
 
     @IsNumber()
     @IsPositive()

@@ -5,7 +5,7 @@ export interface ISubCategory {
     name: string;
     url: string;
     description: string;
-    category: ICategory;
+    category?: ICategory;
     categoryId: number;
 
     userCreateAt?: string;

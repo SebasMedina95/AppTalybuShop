@@ -5,10 +5,12 @@ import { PRODUCTS_SERVICE } from '../../config/services';
 import { envs } from '../../config/envs';
 
 import { CategoriesController } from './categories.controller';
+import { SubCategoriesController } from './subcategories.controller';
 
 @Module({
   controllers: [
     CategoriesController,
+    SubCategoriesController
   ],
   providers: [],
   imports: [

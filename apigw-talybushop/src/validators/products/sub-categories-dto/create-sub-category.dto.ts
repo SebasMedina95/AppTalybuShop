@@ -5,14 +5,15 @@ import { IsNotEmpty,
          IsString,
          MaxLength,
          MinLength } from "class-validator";
-export class CreateSubcategoryDto {
+
+export class CreateSubCategoryDto {
 
     @Transform(({ value }) => Number(value))
     @IsNumber({}, { message: "El id de la categoría debe ser numérico" })
     @IsNotEmpty({ message: "El id de la categoría es un campo requerido" })
     public categoryId: number;
 
-    @IsString({ message: "El nombre de la sub categoría debe ser un String válido" })
+    @IsString({ message: "El nombre la sub categoría debe ser un String válido" })
     @MinLength(1, { message: "El nombre la sub categoría además de requerida debe tener al menos 1 caracter" })
     @MaxLength(100, { message: "El nombre la sub categoría además de requerida no debe sobre pasar los 500 caracteres" })
     @IsNotEmpty({ message: "El nombre la sub categoría es un campo requerido" })
@@ -20,7 +21,7 @@ export class CreateSubcategoryDto {
     public name: string;
 
     @IsString({ message: "El nombre la sub categoría debe ser un String válido" })
-    @MaxLength(5000, { message: "El nombre la sub categoría además de requerida no debe sobre pasar los 500 caracteres" })
+    @MaxLength(5000, { message: "El nombre la sub categoría además de requerida no debe sobre pasar los 5000 caracteres" })
     @IsOptional()
     public description: string;
 
