@@ -1,16 +1,21 @@
 import { 
     Body, 
     Controller, 
+    Delete, 
     Get, 
     Inject, 
     Param, 
+    Patch, 
     Post 
 } from "@nestjs/common";
 import { ClientProxy, RpcException } from "@nestjs/microservices";
 import { catchError } from "rxjs";
 
 import { PRODUCTS_SERVICE } from "../../config/services";
+
 import { CreateProviderDto } from "../../validators/products/providers-dto/create-provider.dto";
+import { UpdateProviderDto } from "../../validators/products/providers-dto/update-provider.dto";
+
 import { PageOptionsDto } from "../../helpers/paginations/dto/page-options.dto";
 
 
@@ -57,13 +62,42 @@ export class ProvidersController{
             id 
         }).pipe(
             catchError(err => { throw new RpcException(err) })
-            )
+        )
 
         } catch (error) {
 
         throw new RpcException(error);
 
         } 
+        
+    }
+
+    @Patch('/update/:id')
+    async updateProvider(
+        @Param('id') id: number,
+        @Body() updateProviderDto: UpdateProviderDto
+    ){
+        
+        return this.productsClient.send({ cmd: 'update_provider' }, {
+        id,
+        ...updateProviderDto
+        }).pipe(
+            catchError(err => { throw new RpcException(err) })
+        )
+        
+        
+    }
+
+    @Delete('/delete/:id')
+    async deleteProvider(
+        @Param('id') id: number
+    ){
+        
+        return this.productsClient.send({ cmd: 'remove_logic_provider' }, {
+        id
+        }).pipe(
+            catchError(err => { throw new RpcException(err) })
+        )
         
     }
 

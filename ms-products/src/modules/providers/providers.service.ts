@@ -188,21 +188,105 @@ export class ProvidersService {
 
   async update(id: number, updateProviderDto: UpdateProviderDto): Promise<ApiTransactionResponse<IProvider | string>> {
     
-    return new ApiTransactionResponse(
-      null,
-      EResponseCodes.INFO,
-      "Comunicación con actualizar un proveedor"
-    );
+    try {
+      
+      //Verificamos que exista el ID solicitado
+      const existProviderById = await this.findOne(id);
+
+      if( existProviderById.data == null ){
+        return new ApiTransactionResponse(
+          null,
+          EResponseCodes.FAIL,
+          `No pudo ser encontrado un proveedor con el ID ${id}`
+        );
+      }
+
+      //Llegamos hasta acá, actualizamos entonces:
+      const updateProvider = await this.prisma.tBL_PROVIDERS.update({
+        where: { id },
+        data: {
+          name: updateProviderDto.name,
+          address: updateProviderDto.address,
+          phone1: updateProviderDto.phone1.toString(),
+          phone2: (updateProviderDto.phone2) ? updateProviderDto.phone2.toString() : null,
+          email1: updateProviderDto.email1,
+          email2: (updateProviderDto.email2) ? updateProviderDto.email2 : null,
+          description: (updateProviderDto.description) ? updateProviderDto.description : null,
+          userUpdateAt: "123456789", //TODO -> Falta el tema de la auth.
+          updateDateAt: new Date(),
+        }
+      });
+
+      return new ApiTransactionResponse(
+        updateProvider,
+        EResponseCodes.OK,
+        "Proveedor actualizado correctamente"
+      );
+
+    } catch (error) {
+
+      this.logger.log(`Ocurrió un error al intentar actualizar el proveedor: ${error}`);
+      return new ApiTransactionResponse(
+        error,
+        EResponseCodes.FAIL,
+        "Ocurrió un error al intentar actualizar el proveedor"
+      );
+      
+    } finally {
+      
+      this.logger.log(`Actualización de proveedor finalizada`);
+      await this.prisma.$disconnect();
+
+    }
     
   }
 
   async remove(id: number): Promise<ApiTransactionResponse<IProvider | string>> {
     
-    return new ApiTransactionResponse(
-      null,
-      EResponseCodes.INFO,
-      "Comunicación con remover lógicamente un proveedor"
-    );
+    try {
+
+      //Verificamos que exista el ID solicitado
+      const existProviderById = await this.findOne(id);
+
+      if( existProviderById.data == null ){
+        return new ApiTransactionResponse(
+          null,
+          EResponseCodes.FAIL,
+          `No pudo ser encontrado un proveedor con el ID ${id}`
+        );
+      }
+
+      //Llegamos hasta acá, actualizamos entonces:
+      const updateProvider = await this.prisma.tBL_PROVIDERS.update({
+        where: { id },
+        data: {
+          status: false,
+          userUpdateAt: "123456789", //TODO -> Falta el tema de la auth.
+          updateDateAt: new Date(),
+        }
+      });
+
+      return new ApiTransactionResponse(
+        updateProvider,
+        EResponseCodes.OK,
+        "Proveedor eliminado correctamente"
+      );
+      
+    } catch (error) {
+
+      this.logger.log(`Ocurrió un error al intentar eliminar el proveedor: ${error}`);
+      return new ApiTransactionResponse(
+        error,
+        EResponseCodes.FAIL,
+        "Ocurrió un error al intentar eliminar el proveedor"
+      );
+      
+    } finally {
+      
+      this.logger.log(`Eliminación de proveedor finalizada`);
+      await this.prisma.$disconnect();
+
+    }
     
   }
 
