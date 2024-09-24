@@ -25,11 +25,45 @@ export class ProvidersService {
 
   async create(createProviderDto: CreateProviderDto): Promise<ApiTransactionResponse<IProvider | CustomError>> {
     
-    return new ApiTransactionResponse(
-      null,
-      EResponseCodes.INFO,
-      "Comunicación con la creación de proveedores"
-    );
+    try {
+      
+      const newProvider = await this.prisma.tBL_PROVIDERS.create({
+        data: {
+          name: createProviderDto.name,
+          address: createProviderDto.address,
+          phone1: createProviderDto.phone1.toString(),
+          phone2: (createProviderDto.phone2) ? createProviderDto.phone2.toString() : null,
+          email1: createProviderDto.email1,
+          email2: (createProviderDto.email2) ? createProviderDto.email2 : null,
+          description: (createProviderDto.description) ? createProviderDto.description : null,
+          userCreateAt: "123456789", //TODO -> Falta el tema de la auth.
+          createDateAt: new Date(),
+          userUpdateAt: "123456789", //TODO -> Falta el tema de la auth.
+          updateDateAt: new Date(),
+        }
+      })
+
+      return new ApiTransactionResponse(
+        newProvider,
+        EResponseCodes.OK,
+        "Proveedor registrado correctamente."
+      );
+      
+    } catch (error) {
+
+      this.logger.log(`Ocurrió un error al intentar crear el proveedor: ${error}`);
+      return new ApiTransactionResponse(
+        error,
+        EResponseCodes.FAIL,
+        "Ocurrió un error al intentar crear el proveedor"
+      );
+      
+    } finally {
+      
+      this.logger.log(`Creación de proveedor finalizada`);
+      await this.prisma.$disconnect();
+
+    }
     
   }
 
