@@ -63,28 +63,28 @@ model TBL_SUBCATEGORIES {
 }
 
 model TBL_PRODUCTS {
-  id                Int          @id @default(autoincrement())
-  description       String       @db.Text
+  id                Int       @id @default(autoincrement())
+  description       String    @db.Text
   inStock           Int
   price             Float
-  sizes             ValidSizes[]
-  slug              String       @unique @db.VarChar(500)
-  tags              String       @db.VarChar(500)
-  colors            String       @db.VarChar(500)
-  title             String       @unique @db.VarChar(200)
-  type              String       @db.VarChar(500)
-  brand             String       @db.VarChar(100)
-  isDiscount        Boolean?     @default(false)
+  sizes             String    @db.VarChar(500)
+  slug              String    @unique @db.VarChar(500)
+  tags              String    @db.VarChar(500)
+  colors            String    @db.VarChar(500)
+  title             String    @unique @db.VarChar(200)
+  type              String    @db.VarChar(500)
+  brand             String    @db.VarChar(100)
+  isDiscount        Boolean?  @default(false)
   percentDiscount   Float?
   discountStartDate DateTime?
   discountEndDate   DateTime?
   is_fragile        Boolean
-  views             Int          @default(0)
+  views             Int       @default(0)
   monthsWarranty    Int
-  status            Boolean      @default(true)
-  userCreateAt      String?      @db.VarChar(30)
+  status            Boolean   @default(true)
+  userCreateAt      String?   @db.VarChar(30)
   createDateAt      DateTime?
-  userUpdateAt      String?      @db.VarChar(30)
+  userUpdateAt      String?   @db.VarChar(30)
   updateDateAt      DateTime?
 
   category   TBL_CATEGORIES @relation(fields: [categoryId], references: [id])

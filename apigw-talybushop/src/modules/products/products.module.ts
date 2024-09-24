@@ -7,12 +7,14 @@ import { envs } from '../../config/envs';
 import { CategoriesController } from './categories.controller';
 import { SubCategoriesController } from './subcategories.controller';
 import { ProvidersController } from './providers.controller';
+import { ProductsController } from './products.controller';
 
 @Module({
   controllers: [
     CategoriesController,
     SubCategoriesController,
-    ProvidersController
+    ProvidersController,
+    ProductsController 
   ],
   providers: [],
   imports: [

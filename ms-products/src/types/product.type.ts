@@ -1,4 +1,5 @@
 export type ValidSizes = 
+'XXS'|
 'XS'|
 'S'|
 'M'|
