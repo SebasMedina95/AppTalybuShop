@@ -143,11 +143,46 @@ export class ProvidersService {
 
   async findOne(id: number): Promise<ApiTransactionResponse<IProvider | string>> {
     
-    return new ApiTransactionResponse(
-      null,
-      EResponseCodes.INFO,
-      "Comunicación con mostrar proveedor por ID"
-    );
+    try {
+      
+      const getProvider = await this.prisma.tBL_PROVIDERS.findFirst({
+        where: {
+          AND: [
+            { id },
+            { status: true }
+          ]
+        }
+      });
+
+      if( !getProvider || getProvider == null ){
+        return new ApiTransactionResponse(
+          null,
+          EResponseCodes.FAIL,
+          `No pudo ser encontrado un proveedor con el ID ${id}`
+        );
+      }
+
+      return new ApiTransactionResponse(
+        getProvider,
+        EResponseCodes.OK,
+        `Proveedor obtenido correctamente`
+      );
+      
+    } catch (error) {
+
+      this.logger.log(`Ocurrió un error al intentar obtener un proveedor por su ID: ${error}`);
+      return new ApiTransactionResponse(
+        error,
+        EResponseCodes.FAIL,
+        "Ocurrió un error al intentar obtener un proveedor por su ID"
+      );
+      
+    } finally {
+      
+      this.logger.log(`Obtener proveedor por ID finalizada`);
+      await this.prisma.$disconnect();
+
+    }
     
   }
 

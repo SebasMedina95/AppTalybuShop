@@ -1,4 +1,11 @@
-import { Body, Controller, Get, Inject, Post } from "@nestjs/common";
+import { 
+    Body, 
+    Controller, 
+    Get, 
+    Inject, 
+    Param, 
+    Post 
+} from "@nestjs/common";
 import { ClientProxy, RpcException } from "@nestjs/microservices";
 import { catchError } from "rxjs";
 
@@ -37,6 +44,27 @@ export class ProvidersController{
         .pipe(
           catchError(err => { throw new RpcException(err) })
         )
+    }
+
+    @Get('/get-by-id/:id')
+    async getProviderById(
+        @Param('id') id: number
+    ){
+
+        try {
+
+        return this.productsClient.send({ cmd: 'get_provider_by_id' }, { 
+            id 
+        }).pipe(
+            catchError(err => { throw new RpcException(err) })
+            )
+
+        } catch (error) {
+
+        throw new RpcException(error);
+
+        } 
+        
     }
 
 }
