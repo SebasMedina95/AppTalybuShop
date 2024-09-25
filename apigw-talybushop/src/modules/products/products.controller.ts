@@ -3,6 +3,7 @@ import {
     Controller, 
     Get, 
     Inject, 
+    Param, 
     Post, 
     UploadedFiles, 
     UseInterceptors 
@@ -12,7 +13,10 @@ import { FilesInterceptor } from "@nestjs/platform-express";
 import { catchError } from "rxjs";
 
 import { PRODUCTS_SERVICE } from "../../config/services";
+
 import { CreateProductDto } from "../../validators/products/products-dto/create-product.dto";
+import { AddImagesProductDto } from "../../validators/products/products-dto/add-images-product.dto";
+import { RemoveImagesProductDto } from "../../validators/products/products-dto/remove-images-product.dto";
 import { PageOptionsDto } from "../../helpers/paginations/dto/page-options.dto";
 
 
@@ -47,13 +51,65 @@ export class ProductsController {
   async getAllProducts(
     @Body() pageOptionsDto: PageOptionsDto
   ){
-    //Lo que tenemos dentro del send, el primer argumento es el nombre que le dimos en el @MessagePattern
-    //que en este caso fue { cmd: 'get_products_paginated' }, y el segundo es el Payload, es decir, el cuerpo
-    //de la petición para enviar los parámetros
+
     return this.productsClient.send({ cmd: 'get_products_paginated' }, pageOptionsDto )
       .pipe(
         catchError(err => { throw new RpcException(err) })
       )
+
+  }
+
+  @Get('/get-by-id/:id')
+  async getProductsById(
+    @Param('id') id: number
+  ){
+
+    try {
+
+      return this.productsClient.send({ cmd: 'get_product_by_id' }, { 
+        id 
+      }).pipe(
+          catchError(err => { throw new RpcException(err) })
+        )
+
+    } catch (error) {
+
+      throw new RpcException(error);
+
+    } 
+    
+  }
+
+  @Post('/add-images')
+  @UseInterceptors(FilesInterceptor('imagesProducts', 10))
+  async addImagesProduct(
+    @UploadedFiles() files: Array<Express.Multer.File>,
+    @Body() addImagesProductDto: AddImagesProductDto
+  ){
+
+    //* Si viene imágenes, entonces las anexamos al DTO para enviarlas
+    if (files){
+      addImagesProductDto.imagesProducts = files;
+    }
+
+    return this.productsClient.send({ cmd: 'add_images_product' }, 
+        addImagesProductDto
+      ).pipe(
+        catchError(err => { throw new RpcException(err) })
+      )
+    
+  }
+
+  @Post('/remove-images')
+  async removeImagesProduct(
+    @Body() removeImagesProductDto: RemoveImagesProductDto
+  ){
+
+    return this.productsClient.send({ cmd: 'remove_images_product' }, removeImagesProductDto )
+      .pipe(
+        catchError(err => { throw new RpcException(err) })
+      )
+
   }
 
 }

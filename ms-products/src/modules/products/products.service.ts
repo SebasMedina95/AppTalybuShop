@@ -5,15 +5,16 @@ import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { PageOptionsDto } from '../../helpers/paginations/dto/page-options.dto';
 import { PageDto } from '../../helpers/paginations/dto/page.dto';
+import { PageMetaDto } from '../../helpers/paginations/dto/page-meta.dto';
 
 import { MySqlErrorsExceptions } from '../../helpers/errors/exceptions-sql';
 import { CustomError } from '../../helpers/errors/custom.error';
 
+import { ApiTransactionResponse } from '../../util/ApiResponse';
+import { EResponseCodes } from '../../constants/ResponseCodesEnum';
 import { IImagesSimpleTable, IProducts } from './interfaces/products.interface';
 import { ValidSizesArray, ValidTypesArray } from '../../types/product.type';
-import { PageMetaDto } from 'src/helpers/paginations/dto/page-meta.dto';
-import { ApiTransactionResponse } from 'src/util/ApiResponse';
-import { EResponseCodes } from 'src/constants/ResponseCodesEnum';
+import { Image } from './entities/image.entity';
 
 @Injectable()
 export class ProductsService {
@@ -236,7 +237,8 @@ export class ProductsService {
           include: {
             category: true,
             subCategory: true,
-            provider: true
+            provider: true,
+            TBL_IMAGES: true,
           },
           take: takeValue,
           skip: skip,
@@ -258,8 +260,6 @@ export class ProductsService {
           type: item.type ? JSON.parse(item.type) : [],  // Convertir 'colors' de JSON string a array
         };
       });
-
-      
 
       itemCount = totalItems;
 
@@ -284,8 +284,82 @@ export class ProductsService {
     
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} product`;
+  async findOne(id: number): Promise<ApiTransactionResponse<IProducts | string>> {
+    
+    try {
+      
+      const getProduct = await this.prisma.tBL_PRODUCTS.findFirst({
+        where: {
+          AND: [
+            { id },
+            { status: true }
+          ]
+        },
+        include: {
+          category: true,
+          subCategory: true,
+          provider: true,
+          TBL_IMAGES: true,
+        }
+      });
+
+      if( !getProduct || getProduct == null ){
+        return new ApiTransactionResponse(
+          null,
+          EResponseCodes.FAIL,
+          `No pudo ser encontrado un producto con el ID ${id}`
+        );
+      }
+
+      //Convertimos en arreglos para facilitar el front.
+      getProduct.sizes = JSON.parse(getProduct.sizes);
+      getProduct.tags = JSON.parse(getProduct.tags);
+      getProduct.colors = JSON.parse(getProduct.colors);
+      getProduct.type = JSON.parse(getProduct.type);
+
+      return new ApiTransactionResponse(
+        getProduct,
+        EResponseCodes.OK,
+        `Producto obtenido correctamente`
+      );
+      
+    } catch (error) {
+
+      this.logger.log(`Ocurrió un error al intentar obtener un producto por su ID: ${error}`);
+      return new ApiTransactionResponse(
+        error,
+        EResponseCodes.FAIL,
+        "Ocurrió un error al intentar obtener un producto por su ID"
+      );
+      
+    } finally {
+      
+      this.logger.log(`Obtener producto por ID finalizada`);
+      await this.prisma.$disconnect();
+
+    }
+    
+  }
+
+  async imagesByProduct(id: number): Promise<Image[]> {
+
+    const getImages = await this.prisma.tBL_IMAGES.findMany({
+      where: { productId: id }
+    });
+
+    return getImages;
+
+  }
+
+  async deleteImagesByProduct(id: number): Promise<boolean> {
+
+    const deleteImages = await this.prisma.tBL_IMAGES.delete({
+      where: { id }
+    });
+
+    if( deleteImages ) return true
+    return false;
+
   }
 
   update(id: number, updateProductDto: UpdateProductDto) {
