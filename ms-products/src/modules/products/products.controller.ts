@@ -14,13 +14,16 @@ import { FilesService } from '../../helpers/files/files.service';
 
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
+import { PageOptionsDto } from '../../helpers/paginations/dto/page-options.dto';
+import { PageDto } from '../../helpers/paginations/dto/page.dto';
 
 import { ApiTransactionResponse } from '../../util/ApiResponse';
+import { EResponseCodes } from '../../constants/ResponseCodesEnum';
+
 import { CustomError } from '../../helpers/errors/custom.error';
 import { IErrorImages, IImagesSimpleTable, IProducts } from './interfaces/products.interface';
 import { MaxFileSizeValidator } from './validators/max-file-size-validator';
 import { FileTypeValidator } from './validators/file-type-validator';
-import { EResponseCodes } from 'src/constants/ResponseCodesEnum';
 
 @Controller('products')
 export class ProductsController {
@@ -132,9 +135,13 @@ export class ProductsController {
 
   }
 
-  @Get()
-  findAll() {
-    return this.productsService.findAll();
+  @MessagePattern({ cmd: 'get_products_paginated' })
+  async findAll(
+    @Payload() pageOptionsDto: PageOptionsDto
+  ): Promise<PageDto<IProducts> | Object> {
+
+    return this.productsService.findAll(pageOptionsDto);
+
   }
 
   @Get(':id')

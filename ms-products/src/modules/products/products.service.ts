@@ -1,14 +1,19 @@
 import { Injectable, Logger } from '@nestjs/common';
-
 import { PrismaService } from '../../config/database/prisma.service';
+
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
+import { PageOptionsDto } from '../../helpers/paginations/dto/page-options.dto';
+import { PageDto } from '../../helpers/paginations/dto/page.dto';
 
 import { MySqlErrorsExceptions } from '../../helpers/errors/exceptions-sql';
 import { CustomError } from '../../helpers/errors/custom.error';
 
 import { IImagesSimpleTable, IProducts } from './interfaces/products.interface';
 import { ValidSizesArray, ValidTypesArray } from '../../types/product.type';
+import { PageMetaDto } from 'src/helpers/paginations/dto/page-meta.dto';
+import { ApiTransactionResponse } from 'src/util/ApiResponse';
+import { EResponseCodes } from 'src/constants/ResponseCodesEnum';
 
 @Injectable()
 export class ProductsService {
@@ -191,8 +196,92 @@ export class ProductsService {
 
   }
 
-  findAll() {
-    return `This action returns all products`;
+  async findAll(pageOptionsDto: PageOptionsDto): Promise<PageDto<IProducts> | Object> {
+    
+    const { take, page, search, order, sort } = pageOptionsDto;
+    let getProducts: IProducts[] = [];
+    let itemCount: number = 0;
+    let whereCondition = {};
+
+    //* Si no se especifican los valores, se usan los predeterminados
+    const takeValue = take || 10;  // Elementos por página
+    const pageValue = page || 1;   // Página actual
+    const skip = (pageValue - 1) * takeValue;  // Calcular el offset para Prisma
+    const orderValue = order || 'asc';  // Orden predeterminado ascendente
+    const sortBy = sort || 'id';  // Columna por defecto para ordenar
+
+    try {
+
+      //? Si vamos a realizar además de la paginación una búsqueda
+      if( search && search !== "" && search !== null && search !== undefined ){
+
+        whereCondition = {
+          OR: [
+            { description: { contains: search, mode: 'insensitive' } },
+            { slug: { contains: search, mode: 'insensitive' } },
+            { tags: { contains: search, mode: 'insensitive' } },
+            { colors: { contains: search, mode: 'insensitive' } },
+            { title: { contains: search, mode: 'insensitive' } },
+            { type: { contains: search, mode: 'insensitive' } },
+            { brand: { contains: search, mode: 'insensitive' } }
+          ],
+        };
+
+      }
+
+      //? Consultar con Prisma la paginación, orden y búsqueda
+      const [items, totalItems] = await Promise.all([
+        this.prisma.tBL_PRODUCTS.findMany({
+          where: whereCondition,
+          include: {
+            category: true,
+            subCategory: true,
+            provider: true
+          },
+          take: takeValue,
+          skip: skip,
+          orderBy: {
+            [sortBy]: orderValue,
+          },
+        }),
+        this.prisma.tBL_PRODUCTS.count({ where: whereCondition }),
+      ]);
+
+      //? Organizamos los parámetros obtenidos para devolver en la consulta
+      //? Convertimos también el campo 'tags' de string a array en cada item
+      getProducts = items.map((item) => {
+        return {
+          ...item,
+          tags: item.tags ? JSON.parse(item.tags) : [],  // Convertir 'tags' de JSON string a array
+          sizes: item.sizes ? JSON.parse(item.sizes) : [],  // Convertir 'sizes' de JSON string a array
+          colors: item.colors ? JSON.parse(item.colors) : [],  // Convertir 'colors' de JSON string a array
+          type: item.type ? JSON.parse(item.type) : [],  // Convertir 'colors' de JSON string a array
+        };
+      });
+
+      
+
+      itemCount = totalItems;
+
+      const pageMetaDto = new PageMetaDto({ itemCount, pageOptionsDto });
+      return new PageDto(getProducts, pageMetaDto);
+      
+    } catch (error) {
+
+      this.logger.log(`Ocurrió un error al intentar obtener listado de productos: ${error}`);
+      return new ApiTransactionResponse(
+        error,
+        EResponseCodes.FAIL,
+        "Ocurrió un error al intentar obtener el listado de productos"
+      );
+      
+    } finally {
+      
+      this.logger.log(`Listado de productos finalizada`);
+      await this.prisma.$disconnect();
+
+    }
+    
   }
 
   findOne(id: number) {
