@@ -1,0 +1,21 @@
+-- CreateEnum
+CREATE TYPE "OrderStatus" AS ENUM ('PENDIENTE', 'ENTREGADA', 'SOLICITADA', 'CANCELADA');
+
+-- CreateTable
+CREATE TABLE "TBL_PURCHASE_ORDER" (
+    "id" SERIAL NOT NULL,
+    "factureCode" VARCHAR(50) NOT NULL,
+    "totalAmount" DOUBLE PRECISION NOT NULL,
+    "totalItems" INTEGER NOT NULL,
+    "status" "OrderStatus" NOT NULL,
+    "paid" BOOLEAN NOT NULL DEFAULT false,
+    "paidAt" TIMESTAMP(3),
+    "description" TEXT,
+    "createAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updateAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "TBL_PURCHASE_ORDER_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateIndex
+CREATE UNIQUE INDEX "TBL_PURCHASE_ORDER_factureCode_key" ON "TBL_PURCHASE_ORDER"("factureCode");

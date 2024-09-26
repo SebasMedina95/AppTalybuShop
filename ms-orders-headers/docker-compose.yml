@@ -1,0 +1,16 @@
+version: '3.8'
+
+services:
+
+  postgres-db:
+    image: postgres:16.4
+    restart: always
+    environment:
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_DB: ${DB_NAME}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    container_name: apptalybushop_msordersheaders
+    volumes:
+      - ./containers/postgres:/var/lib/postgresql/data
+    ports:
+      - 25002:5432
