@@ -362,11 +362,202 @@ export class ProductsService {
 
   }
 
-  update(id: number, updateProductDto: UpdateProductDto) {
-    return `This action updates a #${id} product`;
+  async update(id: number, updateProductDto: UpdateProductDto): Promise<IProducts | string | CustomError> {
+    
+    try {
+      
+      //Verificamos que exista el ID solicitado
+      const existProductById = await this.findOne(id);
+
+      if( existProductById.data == null )
+        return CustomError.badRequestError(`Producto no encontrado`);
+
+      //1. Ajustemos los sizes 
+      const getSizesFromRequest = updateProductDto.sizes;
+      const applySplitSizes: string[] = getSizesFromRequest.split(',');
+      
+      let sizeValid: string[] = [];
+      let sizeInvalid: string[] = [];
+      for (const iterSizes of applySplitSizes) {
+        if( !ValidSizesArray.includes(iterSizes) ){
+          sizeInvalid.push(iterSizes);
+        }else{
+          sizeValid.push(iterSizes);
+        }
+      }
+
+      if( sizeInvalid.length > 0 ){
+        return CustomError.badRequestError(`Las siguientes tallas son inválidas: ${sizeInvalid}`);
+      }
+
+      //2. Ajustemos los types
+      const getTypesFromRequest = updateProductDto.type;
+      const applySplitTypes: string[] = getTypesFromRequest.split(',');
+
+      let typeValid: string[] = [];
+      let typeInvalid: string[] = [];
+      for (const iterTypes of applySplitTypes) {
+        if( !ValidTypesArray.includes(iterTypes) ){
+          typeInvalid.push(iterTypes);
+        }else{
+          typeValid.push(iterTypes);
+        }
+      }
+
+      if( typeInvalid.length > 0 ){
+        return CustomError.badRequestError(`Los siguientes tipos son inválidos: ${typeInvalid}`);
+      }
+
+      //3. Ajustamos los tags
+      const getTagsFromRequest = updateProductDto.tags;
+      const applySplitTags: string[] = getTagsFromRequest.split(',');
+
+      let tagsValid: string[] = [];
+      for (const iterTags of applySplitTags) {
+        tagsValid.push(iterTags.toLowerCase());
+      }
+
+      //4. Ajustemos los colors
+      const getColorsFromRequest = updateProductDto.colors;
+      const applySplitColors: string[] = getColorsFromRequest.split(',');
+
+      let colorsValid: string[] = [];
+      for (const iterColor of applySplitColors) {
+        colorsValid.push(iterColor.toLowerCase());
+      }
+
+      //Verificamos que no se repita el nombre que es Unique, lo haremos por el Slug generado
+      const nameProduct = updateProductDto.title;
+      let slug: string = nameProduct.toLowerCase();
+
+      slug = slug.replace(/ñ/g, 'n'); // Reemplazar la Ñ y ñ por N y n
+      slug = slug.replace(/\s+/g, '_'); // Reemplazar espacios por guiones bajos
+      slug = slug.replace(/[^\w_]+/g, ''); // Eliminar todos los caracteres no alfanuméricos excepto guiones bajos
+      slug = slug.normalize("NFD").replace(/[\u0300-\u036f]/g, ""); // Eliminar caracteres especiales (acentos y diacríticos)
+      slug = slug.replace(/[^a-z0-9_]/g, ''); // Eliminar carácteres no permitido en URLs que no sean letras, números, o guiones bajos
+      slug = slug.replace(/^_+/, ''); // Eliminar guiones bajos al inicio
+      slug = slug.replace(/_+$/, ''); // Eliminar guiones bajos al final
+      slug = slug.trim(); // Elimino espacios residuales al principio y al final
+
+      const existProductByName = await this.prisma.tBL_PRODUCTS.findFirst({
+        where: {
+          OR: [
+            { title: updateProductDto.title.trim().toUpperCase() },
+            { slug }
+          ]
+        }
+      });
+
+      if( existProductByName ){
+        if( existProductByName.id != id ){
+          return CustomError.badRequestError(`Se esta intentando registrar un nombre de producto que ya se encuentra`);
+        }
+      }
+
+      //Actualizamos
+      const updateProduct = await this.prisma.tBL_PRODUCTS.update({
+        where: { id },
+        data: {
+          description: updateProductDto.description,
+          inStock: updateProductDto.inStock,
+          price: updateProductDto.price,
+          sizes: JSON.stringify(sizeValid), //Se guardan arrays como Strings
+          tags: JSON.stringify(tagsValid), //Se guardan arrays como Strings
+          colors: JSON.stringify(colorsValid), //Se guardan arrays como Strings
+          title: updateProductDto.title,
+          slug,
+          type: JSON.stringify(typeValid), //Se guardan arrays como Strings
+          brand: updateProductDto.brand,
+          isDiscount: updateProductDto.isDiscount,
+          percentDiscount: updateProductDto.percentDiscount,
+          discountStartDate: updateProductDto.discountStartDate,
+          discountEndDate: updateProductDto.discountEndDate,
+          is_fragile: updateProductDto.is_fragile,
+          views: 0,
+          monthsWarranty: updateProductDto.monthsWarranty,
+          status: true,
+          category: {
+            connect: {
+              id: updateProductDto.categoryId, // Conexión con la categoría
+            },
+          },
+          subCategory: {
+            connect: {
+              id: updateProductDto.subCategoryId, // Conexión con la subcategoría
+            },
+          },
+          provider: {
+            connect: {
+              id: updateProductDto.providerId, // Conexión con el proveedor
+            },
+          },
+          userUpdateAt: "123456789", //TODO: Pendiente del auth
+          updateDateAt: new Date(),
+        }
+      });
+
+      return updateProduct;
+      
+    } catch (error) {
+
+      this.logger.log(`Ocurrió un error al intentar actualizar el producto: ${error}`);
+      return CustomError.badRequestError(`Error al intentar actualizar el producto`);
+      
+    } finally {
+      
+      this.logger.log(`Actualización de producto finalizada`);
+      await this.prisma.$disconnect();
+
+    }
+
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} product`;
+  async remove(id: number): Promise<ApiTransactionResponse<IProducts | string>> {
+
+    try {
+      
+      //Verificamos que exista el ID solicitado
+      const existProductById = await this.findOne(id);
+
+      if( existProductById.data == null ){
+        return new ApiTransactionResponse(
+          null,
+          EResponseCodes.FAIL,
+          `No pudo ser encontrado un producto con el ID ${id}`
+        );
+      }
+
+      //Llegamos hasta acá, actualizamos entonces:
+      const updateProduct = await this.prisma.tBL_PRODUCTS.update({
+        where: { id },
+        data: {
+          status: false,
+          userUpdateAt: "123456789", //TODO -> Falta el tema de la auth.
+          updateDateAt: new Date(),
+        }
+      });
+
+      return new ApiTransactionResponse(
+        updateProduct,
+        EResponseCodes.OK,
+        "Producto eliminado correctamente"
+      );
+
+    } catch (error) {
+
+      this.logger.log(`Ocurrió un error al intentar eliminar lógicamente el producto: ${error}`);
+      return new ApiTransactionResponse(
+        error,
+        EResponseCodes.FAIL,
+        "Ocurrió un error al intentar eliminar lógicamente el producto"
+      );
+      
+    } finally {
+      
+      this.logger.log(`Eliminación lógica de producto finalizada`);
+      await this.prisma.$disconnect();
+
+    }
+
   }
 }

@@ -1,9 +1,11 @@
 import { 
     Body, 
     Controller, 
+    Delete, 
     Get, 
     Inject, 
     Param, 
+    Patch, 
     Post, 
     UploadedFiles, 
     UseInterceptors 
@@ -17,6 +19,7 @@ import { PRODUCTS_SERVICE } from "../../config/services";
 import { CreateProductDto } from "../../validators/products/products-dto/create-product.dto";
 import { AddImagesProductDto } from "../../validators/products/products-dto/add-images-product.dto";
 import { RemoveImagesProductDto } from "../../validators/products/products-dto/remove-images-product.dto";
+import { UpdateProductDto } from "../../validators/products/products-dto/update-product.dto";
 import { PageOptionsDto } from "../../helpers/paginations/dto/page-options.dto";
 
 
@@ -110,6 +113,35 @@ export class ProductsController {
         catchError(err => { throw new RpcException(err) })
       )
 
+  }
+
+  @Patch('/update/:id')
+  @UseInterceptors(FilesInterceptor('imagesProducts', 10))
+  async updateProduct(
+    @Param('id') id: number,
+    @Body() updateProductDto: UpdateProductDto
+  ){
+
+    return this.productsClient.send({ cmd: 'update_product' }, {
+        id,
+        ...updateProductDto
+      }).pipe(
+        catchError(err => { throw new RpcException(err) })
+      )
+
+  }
+
+  @Delete('/delete/:id')
+  async deleteProvider(
+    @Param('id') id: number
+  ){
+    
+    return this.productsClient.send({ cmd: 'remove_logic_product' }, {
+      id
+    }).pipe(
+      catchError(err => { throw new RpcException(err) })
+    )
+    
   }
 
 }

@@ -293,7 +293,6 @@ export class ProductsController {
           await this.cloudinaryService.deleteFile(name);
 
           //Las removemos de la base de datos
-          console.log("Hola acá, con valor: ", iterImages.id);
           await this.productsService.deleteImagesByProduct(Number(iterImages.id));
 
         }
@@ -314,13 +313,36 @@ export class ProductsController {
   }
 
 
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateProductDto: UpdateProductDto) {
-    return this.productsService.update(+id, updateProductDto);
+  @MessagePattern({ cmd: 'update_product' })
+  async update(
+    @Payload() updateProductDto: UpdateProductDto
+  ): Promise<ApiTransactionResponse<IProducts | string | CustomError>> {
+
+    const updateProduct = await this.productsService.update(Number(updateProductDto.id), updateProductDto);
+    if( updateProduct instanceof CustomError  ){
+      return new ApiTransactionResponse(
+        updateProduct.message,
+        EResponseCodes.FAIL,
+        "Ocurrieron errores, no se pudo actualizar el producto."
+      );
+    }
+
+    return new ApiTransactionResponse(
+      updateProduct,
+      EResponseCodes.OK,
+      "Producto actualizado correctamente."
+    );
+
+
   }
 
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.productsService.remove(+id);
+  @MessagePattern({ cmd: 'remove_logic_product' })
+  async remove(
+    @Payload('id') id: number
+  ): Promise<ApiTransactionResponse<IProducts | string>> {
+
+    return this.productsService.remove(id);
+
   }
+
 }
