@@ -29,6 +29,8 @@ model TBL_PURCHASE_ORDER {
   paid        Boolean     @default(false)
   paidAt      DateTime?
   description String?     @db.Text
-  createAt    DateTime    @default(now())
-  updateAt    DateTime    @default(now())
+  userCreateAt String?   @db.VarChar(30)
+  createDateAt DateTime?
+  userUpdateAt String?   @db.VarChar(30)
+  updateDateAt DateTime?
 }

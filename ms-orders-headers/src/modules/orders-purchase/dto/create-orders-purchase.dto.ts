@@ -5,7 +5,9 @@ import { IsBoolean,
          IsNotEmpty,
          IsNumber,
          IsOptional,
-         IsPositive } from "class-validator";
+         IsPositive, 
+         IsString,
+         MaxLength} from "class-validator";
 import { OrderStatusList } from "../../../constants/OrderEnum";
 
 export class CreateOrdersPurchaseDto {
@@ -21,6 +23,11 @@ export class CreateOrdersPurchaseDto {
     @IsNotEmpty({ message: "La cantidad de elementos de la compra es un campo requerido" })
     @IsPositive({ message: "Solo se permiten valores positivos" })
     totalItems: number;
+
+    @IsString({ message: "La descripción de la orden de pago debe ser un String válido" })
+    @MaxLength(5000, { message: "La descripción de la orden de pago además de requerida no debe sobre pasar los 5000 caracteres" })
+    @IsOptional()
+    public description: string;
 
     @IsEnum(OrderStatusList, { message: `Los estados permitidos son ${OrderStatusList}` })
     @IsOptional()

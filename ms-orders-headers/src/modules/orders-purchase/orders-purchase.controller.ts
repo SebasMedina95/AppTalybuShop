@@ -42,6 +42,15 @@ export class OrdersPurchaseController {
 
   }
 
+  @MessagePattern({ cmd: 'get_order_purchase_header_by_code' })
+  async findOneByCode(
+    @Payload() code: string
+  ): Promise<ApiTransactionResponse<IOrders | string>> {
+
+    return this.ordersPurchaseService.findOneByCode(code);
+
+  }
+
   @MessagePattern({ cmd: 'change_order_purchase_header_status' })
   async changedOrderStatus(
     @Payload() updateOrdersPurchaseDto: UpdateOrdersPurchaseDto

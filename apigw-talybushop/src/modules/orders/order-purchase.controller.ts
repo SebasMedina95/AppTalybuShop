@@ -66,6 +66,26 @@ export class OrderPurchaseController {
         }
     }
 
+    @Get('/get-by-code/:code')
+    async getOrderHeaderByCode(
+        @Param('code') code: string
+    ) {
+
+        try {
+
+            return this.orderHeaderPurchaseClient.send({ cmd: 'get_order_purchase_header_by_code' }, { 
+                code 
+            }).pipe(
+                catchError(err => { throw new RpcException(err) })
+            )
+
+        } catch (error) {
+
+            throw new RpcException(error);
+
+        }
+    }
+
     @Patch('/update-status/:id')
     async changedOrderStatus(
         @Body() updateOrdersPurchaseDto: UpdateOrdersPurchaseDto

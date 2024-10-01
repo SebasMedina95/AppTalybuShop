@@ -17,6 +17,11 @@ export class PageOptionsDto {
     @IsOptional()
     readonly order?: Order = Order.ASC;
 
+    @Type(() => String)
+    @IsString()
+    @IsOptional()
+    readonly sort?: string = "id";
+
     @Type(() => Number)
     @IsInt()
     @Min(1)

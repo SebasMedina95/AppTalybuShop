@@ -13,7 +13,6 @@ import { PRODUCTS_SERVICE } from '../../config/services';
 import { PageOptionsDto } from '../../helpers/paginations/dto/page-options.dto';
 import { CreateCategoryDto } from '../../validators/products/categories-dto/create-category.dto';
 import { UpdateCategoryDto } from '../../validators/products/categories-dto/update-category.dto';
-import { Console } from 'console';
 
 
 @Controller('categories')

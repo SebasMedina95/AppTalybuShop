@@ -9,6 +9,10 @@ export interface IOrders {
     paid?: boolean,
     paidAt?: Date,
     description?: string,
-    createAt?: Date,
-    updateAt?: Date,
+    
+    userCreateAt?: string;
+    createDateAt?: Date;
+    userUpdateAt?: string;
+    updateDateAt?: Date;
+    
 }
