@@ -35,7 +35,7 @@ export class OrdersPurchaseController {
 
   @MessagePattern({ cmd: 'get_order_purchase_header_by_id' })
   async findOne(
-    @Payload() id: number
+    @Payload('id') id: number
   ): Promise<ApiTransactionResponse<IOrders | string>> {
 
     return this.ordersPurchaseService.findOne(id);
@@ -44,7 +44,7 @@ export class OrdersPurchaseController {
 
   @MessagePattern({ cmd: 'get_order_purchase_header_by_code' })
   async findOneByCode(
-    @Payload() code: string
+    @Payload('code') code: string
   ): Promise<ApiTransactionResponse<IOrders | string>> {
 
     return this.ordersPurchaseService.findOneByCode(code);

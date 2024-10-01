@@ -144,11 +144,43 @@ export class OrdersPurchaseService {
     id: number
   ): Promise<ApiTransactionResponse<IOrders | string>> {
 
-    return new ApiTransactionResponse(
-      null,
-      EResponseCodes.INFO,
-      "Test obtener una orden de pago dado su ID."
-    );
+    try {
+      
+      const getPurchaseOrder = await this.prisma.tBL_PURCHASE_ORDER.findFirst({
+        where: {
+          id
+        }
+      });
+
+      if( !getPurchaseOrder || getPurchaseOrder == null ){
+        return new ApiTransactionResponse(
+          null,
+          EResponseCodes.FAIL,
+          `No pudo ser encontrado una categoría con el ID ${id}`
+        );
+      }
+
+      return new ApiTransactionResponse(
+        getPurchaseOrder,
+        EResponseCodes.OK,
+        `Orden de Pago obtenida correctamente`
+      );
+
+    } catch (error) {
+
+      this.logger.log(`Ocurrió un error al intentar obtener una Orden de Pago por su ID: ${error}`);
+      return new ApiTransactionResponse(
+        error,
+        EResponseCodes.FAIL,
+        "Ocurrió un error al intentar obtener una Orden de Pago por su ID"
+      );
+      
+    } finally {
+      
+      this.logger.log(`Obtener Orden de Pago por ID finalizada`);
+      await this.prisma.$disconnect();
+
+    }
 
   }
 
@@ -156,11 +188,41 @@ export class OrdersPurchaseService {
     code: string
   ): Promise<ApiTransactionResponse<IOrders | string>> {
 
-    return new ApiTransactionResponse(
-      null,
-      EResponseCodes.INFO,
-      "Test obtener una orden de pago dado su Código."
-    );
+    try {
+      
+      const getPurchaseOrder = await this.prisma.tBL_PURCHASE_ORDER.findFirst({
+        where: { factureCode: code }
+      });
+
+      if( !getPurchaseOrder || getPurchaseOrder == null ){
+        return new ApiTransactionResponse(
+          null,
+          EResponseCodes.FAIL,
+          `No pudo ser encontrado una categoría con el Código de Factura ${code}`
+        );
+      }
+
+      return new ApiTransactionResponse(
+        getPurchaseOrder,
+        EResponseCodes.OK,
+        `Orden de Pago obtenida correctamente`
+      );
+
+    } catch (error) {
+
+      this.logger.log(`Ocurrió un error al intentar obtener una Orden de Pago por su Código de Factura: ${error}`);
+      return new ApiTransactionResponse(
+        error,
+        EResponseCodes.FAIL,
+        "Ocurrió un error al intentar obtener una Orden de Pago por su Código de Factura"
+      );
+      
+    } finally {
+      
+      this.logger.log(`Obtener Orden de Pago por Código de Factura finalizada`);
+      await this.prisma.$disconnect();
+
+    }
 
   }
 
