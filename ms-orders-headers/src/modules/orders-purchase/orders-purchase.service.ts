@@ -230,11 +230,50 @@ export class OrdersPurchaseService {
     updateOrdersPurchaseDto: UpdateOrdersPurchaseDto
   ): Promise<ApiTransactionResponse<IOrders | CustomError>> {
 
-    return new ApiTransactionResponse(
-      null,
-      EResponseCodes.INFO,
-      "Test actualizar el estado de una orden de pago."
-    );
+    try {
+      
+      //? Verificamos que exista el ID solicitado
+      const existOrderPurchaseById = await this.findOne(updateOrdersPurchaseDto.id);
+
+      if( existOrderPurchaseById.data == null ){
+        return new ApiTransactionResponse(
+          null,
+          EResponseCodes.FAIL,
+          `No pudo ser encontrado una orden de pago con el ID ${updateOrdersPurchaseDto.id}`
+        );
+      }
+
+      //? Llegamos hasta acá, actualizamos entonces:
+      const updatePurchaseOrder = await this.prisma.tBL_PURCHASE_ORDER.update({
+        where: { id: updateOrdersPurchaseDto.id },
+        data: {
+          status: updateOrdersPurchaseDto.status,
+          userUpdateAt: "123456789", //TODO -> Falta el tema de la auth.
+          updateDateAt: new Date(),
+        }
+      });
+
+      return new ApiTransactionResponse(
+        updatePurchaseOrder,
+        EResponseCodes.OK,
+        "Orden de Pago actualizada correctamente"
+      );
+      
+    } catch (error) {
+
+      this.logger.log(`Ocurrió un error al intentar actualizar la Orden de Pago: ${error}`);
+      return new ApiTransactionResponse(
+        error,
+        EResponseCodes.FAIL,
+        "Ocurrió un error al intentar actualizar la Orden de Pago"
+      );
+      
+    } finally {
+      
+      this.logger.log(`Actualización de Orden de Pago finalizada`);
+      await this.prisma.$disconnect();
+
+    }
 
   }
 
