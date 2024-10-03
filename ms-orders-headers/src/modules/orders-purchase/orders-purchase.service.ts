@@ -1,4 +1,10 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { 
+  Inject, 
+  Injectable, 
+  Logger 
+} from '@nestjs/common';
+import { ClientProxy } from '@nestjs/microservices';
+import { firstValueFrom } from 'rxjs';
 import { PrismaService } from '../../config/database/prisma.service';
 
 import { CreateOrdersPurchaseDto } from './dto/create-orders-purchase.dto';
@@ -6,13 +12,17 @@ import { UpdateOrdersPurchaseDto } from './dto/update-orders-purchase.dto';
 
 import { ApiTransactionResponse } from '../../utils/ApiResponse';
 import { EResponseCodes } from '../../constants/ResponseCodesEnum';
+import { MySqlErrorsExceptions } from '../../helpers/errors/exceptions-sql';
+
 import { CustomError } from '../../helpers/errors/custom.error';
 import { PageOptionsDto } from '../../helpers/paginations/dto/page-options.dto';
 import { PageDto } from '../../helpers/paginations/dto/page.dto';
-import { MySqlErrorsExceptions } from '../../helpers/errors/exceptions-sql';
+import { PageMetaDto } from '../../helpers/paginations/dto/page-meta.dto';
 
 import { IOrders } from './interfaces/orders.interface';
-import { PageMetaDto } from 'src/helpers/paginations/dto/page-meta.dto';
+import { PRODUCTS_SERVICE } from '../../config/services';
+import { OrderPurchaseItemDto } from './dto/item-order-purchase.dto';
+import { IProducts } from './interfaces/products.interface';
 
 @Injectable()
 export class OrdersPurchaseService {
@@ -21,24 +31,56 @@ export class OrdersPurchaseService {
   private readonly errorsSQL = new MySqlErrorsExceptions();
 
   constructor(
-    private prisma: PrismaService
+    private prisma: PrismaService,
+    @Inject(PRODUCTS_SERVICE) private readonly productsClient: ClientProxy,
   ){}
 
   async create(
     createOrdersPurchaseDto: CreateOrdersPurchaseDto
-  ): Promise<ApiTransactionResponse<IOrders | CustomError>> {
+  ): Promise<ApiTransactionResponse<IOrders | CustomError | string>> {
 
     try {
 
-      //? Debemos de generar el código de factura
+      //? Primeramente, validemos la integridad de los productos
+      //* Recordemos que para trabajar la promesa debemos usar firstValueFrom
+      //* pues inicialmente hablamos de un Observable()
+      const getProducts: ApiTransactionResponse<any[]> = await firstValueFrom(
+        this.productsClient.send(
+          { cmd: 'validate_products_for_purcharse_orders' }, 
+          createOrdersPurchaseDto.items)
+      )
+
+      if( getProducts.data == null ){
+        return new ApiTransactionResponse(
+          getProducts.operation.message,
+          EResponseCodes.OK,
+          "Error al registrar la Orden de Pago."
+        );
+      }
+
+      //* SI LLEGAMOS HASTA ACÁ LA DATA ESTÁ OK :) !
+      //? Ahora, debemos de generar el código de factura
       //? Como lo capturamos a nivel de horas con segundos no debería repetirse
       const generateFactureCode: string = this.generateCodeFacture();
 
-      const newOrderPurchase = await this.prisma.tBL_PURCHASE_ORDER.create({
+      //? Calculo el valor total
+      //! Priorizaré la legibilidad y entendimiento del código:
+      let totalAmount: number = 0;
+      let totalItems: number = 0;
+      let productsProcess: IProducts[] = getProducts.data;
+      for (let i = 0; i < createOrdersPurchaseDto.items.length; i++) {
+        
+        totalAmount += createOrdersPurchaseDto.items[i].quantity;
+        totalItems += Number(productsProcess[i].price) * createOrdersPurchaseDto.items[i].quantity;
+        
+      }
+
+      //? Creamos la transacción (Dos movimientos en un solo)
+      const order = await this.prisma.tBL_PURCHASE_ORDER.create({
         data: {
           factureCode: generateFactureCode,
-          totalAmount: createOrdersPurchaseDto.totalAmount,
-          totalItems: createOrdersPurchaseDto.totalItems,
+          totalAmount: totalAmount,
+          totalItems: totalItems,
           description: createOrdersPurchaseDto.description,
           paid: false,
           status: "PENDIENTE",
@@ -46,17 +88,29 @@ export class OrdersPurchaseService {
           createDateAt: new Date(),
           userUpdateAt: "123456789", //TODO -> Falta el tema de la auth.
           updateDateAt: new Date(),
+          OrderItems: {              //REGISTRO DINÁMICO en paralelo.
+            createMany: {
+              data: createOrdersPurchaseDto.items.map( (orderItem) => ({
+                quantity: orderItem.quantity,
+                size: orderItem.size,
+                color: orderItem.color,
+                productId: orderItem.productId,
+                price: productsProcess.find( p => p.id === orderItem.productId ).price
+              }))
+            }
+          }
         }
       })
 
       return new ApiTransactionResponse(
-        newOrderPurchase,
+        order,
         EResponseCodes.OK,
-        "Categoría registrada correctamente."
+        "Orden de Pago registrada correctamente."
       );
 
     } catch (error) {
 
+      console.log(error);
       this.logger.log(`Ocurrió un error al intentar crear la orden de pago: ${error}`);
       return new ApiTransactionResponse(
         error,
@@ -116,7 +170,7 @@ export class OrdersPurchaseService {
         this.prisma.tBL_PURCHASE_ORDER.count({ where: whereCondition }),
       ]);
 
-      getPurchaseOrders = items;
+      //getPurchaseOrders = items;
       itemCount = totalItems;
 
       const pageMetaDto = new PageMetaDto({ itemCount, pageOptionsDto });
@@ -161,7 +215,8 @@ export class OrdersPurchaseService {
       }
 
       return new ApiTransactionResponse(
-        getPurchaseOrder,
+        //getPurchaseOrder,
+        null,
         EResponseCodes.OK,
         `Orden de Pago obtenida correctamente`
       );
@@ -203,7 +258,8 @@ export class OrdersPurchaseService {
       }
 
       return new ApiTransactionResponse(
-        getPurchaseOrder,
+        //getPurchaseOrder,
+        null,
         EResponseCodes.OK,
         `Orden de Pago obtenida correctamente`
       );
@@ -254,7 +310,8 @@ export class OrdersPurchaseService {
       });
 
       return new ApiTransactionResponse(
-        updatePurchaseOrder,
+        //updatePurchaseOrder,
+        null,
         EResponseCodes.OK,
         "Orden de Pago actualizada correctamente"
       );

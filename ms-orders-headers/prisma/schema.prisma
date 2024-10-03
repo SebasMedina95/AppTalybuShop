@@ -21,16 +21,30 @@ enum OrderStatus {
 }
 
 model TBL_PURCHASE_ORDER {
-  id          Int         @id @default(autoincrement())
-  factureCode String      @unique @db.VarChar(50)
-  totalAmount Float
-  totalItems  Int
-  status      OrderStatus
-  paid        Boolean     @default(false)
-  paidAt      DateTime?
-  description String?     @db.Text
-  userCreateAt String?   @db.VarChar(30)
+  id           Int         @id @default(autoincrement())
+  factureCode  String      @unique @db.VarChar(50)
+  totalAmount  Float
+  totalItems   Int
+  status       OrderStatus @default(PENDIENTE)
+  paid         Boolean     @default(false)
+  paidAt       DateTime?
+  description  String?     @db.Text
+  userCreateAt String?     @db.VarChar(30)
   createDateAt DateTime?
-  userUpdateAt String?   @db.VarChar(30)
+  userUpdateAt String?     @db.VarChar(30)
   updateDateAt DateTime?
+
+  OrderItems TBL_PURCHARSE_ORDER_ITEMS[]
+}
+
+model TBL_PURCHARSE_ORDER_ITEMS {
+  id        Int    @id @default(autoincrement())
+  productId Int //Referencia al ID de Producto en su respectivo microservicio
+  quantity  Int
+  price     Float //Aunque lo podemos sacar de productos, esto podría variar con el tiempo, es mejor congelarlo
+  size      String
+  color     String
+
+  TBL_PURCHASE_ORDER TBL_PURCHASE_ORDER? @relation(fields: [orderPurchaseId], references: [id])
+  orderPurchaseId    Int?
 }

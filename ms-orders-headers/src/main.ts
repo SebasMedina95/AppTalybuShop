@@ -16,7 +16,7 @@ async function bootstrap() {
   });
 
   await app.listen();
-  logger.log(`Microservicio corriendo en puerto: ${envs.PORT}`);
+  logger.log(`Microservicio de Cabecera de Ordenes corriendo en puerto: ${envs.PORT}`);
   
 }
 bootstrap();

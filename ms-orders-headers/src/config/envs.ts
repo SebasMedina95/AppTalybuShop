@@ -11,6 +11,8 @@ interface EnvVars {
     DB_PORT: number;
     DB_HOST: string;
     DB_TYPE: string;
+    PRODUCTS_MS_HOST: string;
+    PRODUCTS_MS_PORT: number;
 }
 
 const envsSchema = joi.object({
@@ -23,6 +25,8 @@ const envsSchema = joi.object({
     DB_PORT: joi.number().required(),
     DB_HOST: joi.string().required(),
     DB_TYPE: joi.string().required(),
+    PRODUCTS_MS_HOST: joi.string().required(),
+    PRODUCTS_MS_PORT: joi.number().required(),
 }).unknown(true);
 
 const { error, value } = envsSchema.validate( process.env )
@@ -43,4 +47,6 @@ export const envs = {
     DB_PORT: envVars.DB_PORT, 
     DB_HOST: envVars.DB_HOST, 
     DB_TYPE: envVars.DB_TYPE,
+    PRODUCTS_MS_HOST: envVars.PRODUCTS_MS_HOST,
+    PRODUCTS_MS_PORT: envVars.PRODUCTS_MS_PORT,
 }

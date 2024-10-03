@@ -16,6 +16,8 @@ import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { AddImagesProductDto } from './dto/add-images-product.dto';
 import { RemoveImagesProductDto } from './dto/remove-images-product.dto';
+import { OrderPurchaseItemDto } from './dto/item-order-purchase.dto';
+
 import { PageOptionsDto } from '../../helpers/paginations/dto/page-options.dto';
 import { PageDto } from '../../helpers/paginations/dto/page.dto';
 
@@ -342,6 +344,15 @@ export class ProductsController {
   ): Promise<ApiTransactionResponse<IProducts | string>> {
 
     return this.productsService.remove(id);
+
+  }
+
+  @MessagePattern({ cmd: 'validate_products_for_purcharse_orders' })
+  async validateProducts(
+    @Payload() orderPurcharseValid: OrderPurchaseItemDto[]
+  ): Promise<ApiTransactionResponse<IProducts[] | OrderPurchaseItemDto[] | string>> {
+
+    return this.productsService.validateProducts(orderPurcharseValid);
 
   }
 

@@ -6,6 +6,7 @@ import { UpdateProductDto } from './dto/update-product.dto';
 import { PageOptionsDto } from '../../helpers/paginations/dto/page-options.dto';
 import { PageDto } from '../../helpers/paginations/dto/page.dto';
 import { PageMetaDto } from '../../helpers/paginations/dto/page-meta.dto';
+import { OrderPurchaseItemDto } from './dto/item-order-purchase.dto';
 
 import { MySqlErrorsExceptions } from '../../helpers/errors/exceptions-sql';
 import { CustomError } from '../../helpers/errors/custom.error';
@@ -560,4 +561,90 @@ export class ProductsService {
     }
 
   }
+
+  //! CONSIDERACIONES:
+  //* Los ID se podrían repetir, lo que no se puede repetir es un objeto idéntico (Variar por talla o color)
+  //* La validación cruzada se hace por cada campo disponible
+  async validateProducts(
+    orderPurcharseValid: OrderPurchaseItemDto[]
+  ): Promise<ApiTransactionResponse<IProducts[] | OrderPurchaseItemDto[] | string>> {
+
+    const uniqueItemsSuccess = new Set<string>();
+    let arrayObjectSuccess: IProducts[] = []; 
+    let arrayObjectErrors: OrderPurchaseItemDto[] = [];
+    let arrayObjectNoExistError: OrderPurchaseItemDto[] = [];
+
+    for (const item of orderPurcharseValid){
+
+      //? Validemos que exista primero el ID del producto:
+      const getProduct = await this.prisma.tBL_PRODUCTS.findFirst({
+        where: {
+          AND: [
+            { id: item.productId },
+            { status: true }
+          ]
+        },
+        include: {
+          category: true,
+          subCategory: true,
+          provider: true,
+          TBL_IMAGES: true,
+        }
+      });
+
+      if( getProduct ){
+
+        //? Validamos que no se halle repetido con los elementos dados
+        const itemIdentifier: string = `${item.productId}-${item.size}-${item.color}`;
+
+        if (uniqueItemsSuccess.has(itemIdentifier)){
+
+          arrayObjectErrors.push(item);
+
+        }else{
+
+          uniqueItemsSuccess.add(itemIdentifier);
+          arrayObjectSuccess.push(getProduct);
+
+        }
+
+      }else{
+
+        arrayObjectNoExistError.push(item);
+
+      }
+
+    } //forof de validación
+
+    //? Validación de error si no se hallaron productos
+    if( arrayObjectNoExistError.length > 0 ){
+      
+      return new ApiTransactionResponse(
+        null,
+        EResponseCodes.FAIL,
+        "Hay productos que no fueron encontrados en base de datos."
+      );
+
+    }
+
+    //? Validación de error si hay objetos repetidos
+    if( arrayObjectErrors.length > 0 ){
+
+      return new ApiTransactionResponse(
+        null,
+        EResponseCodes.FAIL,
+        "Hay productos que se encuentran repetidos, corrija la información."
+      );
+
+    }
+
+    return new ApiTransactionResponse(
+      arrayObjectSuccess,
+      EResponseCodes.OK,
+      "Productos filtrados de manera adecuada."
+    );
+
+
+  }
+
 }

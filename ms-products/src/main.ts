@@ -32,7 +32,7 @@ async function bootstrap() {
   );
 
   await app.listen();
-  logger.log(`Microservicio corriendo en puerto: ${envs.PORT}`);
+  logger.log(`Microservicio de Productos corriendo en puerto: ${envs.PORT}`);
 
 }
 bootstrap();

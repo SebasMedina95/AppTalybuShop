@@ -18,7 +18,7 @@ export class OrdersPurchaseController {
   @MessagePattern({ cmd: 'create_order_purchase_header'})
   async create(
     @Payload() createOrdersPurchaseDto: CreateOrdersPurchaseDto
-  ): Promise<ApiTransactionResponse<IOrders | CustomError>> {
+  ): Promise<ApiTransactionResponse<IOrders | CustomError | string>> {
 
     return this.ordersPurchaseService.create(createOrdersPurchaseDto);
 
