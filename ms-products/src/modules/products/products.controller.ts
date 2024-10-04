@@ -356,4 +356,13 @@ export class ProductsController {
 
   }
 
+  @MessagePattern({ cmd: 'get_products_by_array_ids' })
+  async getProductsByArrayIds(
+    @Payload() ids: number[]
+  ): Promise<ApiTransactionResponse<IProducts[] | string>> {
+
+    return this.productsService.getProductsByArrayIds(ids);
+
+  }
+
 }

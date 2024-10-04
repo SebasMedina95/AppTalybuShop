@@ -1,4 +1,5 @@
 import { OrderStatus } from "@prisma/client";
+import { IProducts } from "./products.interface";
 
 export interface IOrders {
     id?: number;
@@ -9,7 +10,7 @@ export interface IOrders {
     paid?: boolean;
     paidAt?: Date;
     description?: string;
-    //items: IItemsOrders[];
+    OrderItems?: any;
     
     userCreateAt?: string;
     createDateAt?: Date;

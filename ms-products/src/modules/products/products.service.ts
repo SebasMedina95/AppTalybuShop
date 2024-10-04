@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, Get } from '@nestjs/common';
 import { PrismaService } from '../../config/database/prisma.service';
 
 import { CreateProductDto } from './dto/create-product.dto';
@@ -565,6 +565,8 @@ export class ProductsService {
   //! CONSIDERACIONES:
   //* Los ID se podrían repetir, lo que no se puede repetir es un objeto idéntico (Variar por talla o color)
   //* La validación cruzada se hace por cada campo disponible
+  //* Debemos considerar en la validación que la talla y el color deben de existir
+  //* Debemos considerar que el producto se encuentre disponible
   async validateProducts(
     orderPurcharseValid: OrderPurchaseItemDto[]
   ): Promise<ApiTransactionResponse<IProducts[] | OrderPurchaseItemDto[] | string>> {
@@ -581,7 +583,9 @@ export class ProductsService {
         where: {
           AND: [
             { id: item.productId },
-            { status: true }
+            { status: true },
+            { sizes: { contains: `"${item.size}"` } }, // Verifica si el valor está en el array de sizes
+            { colors: { contains: `"${item.color}"` } } // Verifica si el valor está en el array de colors
           ]
         },
         include: {
@@ -622,7 +626,7 @@ export class ProductsService {
       return new ApiTransactionResponse(
         null,
         EResponseCodes.FAIL,
-        "Hay productos que no fueron encontrados en base de datos."
+        "Hay productos que no fueron encontrados en base de datos (Considerando identificación, tallas y colores)."
       );
 
     }
@@ -644,6 +648,37 @@ export class ProductsService {
       "Productos filtrados de manera adecuada."
     );
 
+
+  }
+
+  async getProductsByArrayIds(
+    ids: number[]
+  ): Promise<ApiTransactionResponse<IProducts[] | string>> {
+
+    ids = Array.from(new Set(ids));
+
+    const getProducts = await this.prisma.tBL_PRODUCTS.findMany({
+      where: {
+        id: {
+          in: ids
+        }
+      }
+    });
+
+    if ( getProducts.length !== ids.length ) {
+      return new ApiTransactionResponse(
+        null,
+        EResponseCodes.FAIL,
+        "Algunos productos no fueron encontrados."
+      );
+    }
+
+
+    return new ApiTransactionResponse(
+      getProducts,
+      EResponseCodes.OK,
+      "Productos filtrados de manera adecuada."
+    );
 
   }
 

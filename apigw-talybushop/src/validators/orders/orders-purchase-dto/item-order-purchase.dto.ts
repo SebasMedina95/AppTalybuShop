@@ -20,17 +20,6 @@ export class OrderPurchaseItemDto {
     @IsPositive({ message: "Solo se permiten valores positivos" })
     quantity: number;
 
-    @Transform(({ value }) => Number(value))
-    @IsNumber({}, { message: "El precio del producto debe ser numérico" })
-    @IsNotEmpty({ message: "El precio del producto es un campo requerido" })
-    @IsPositive({ message: "Solo se permiten valores positivos" })
-    price: number;
-
-    @Transform(({ value }) => Number(value))
-    @IsNumber({}, { message: "El porcentaje de descuento del producto debe ser numérico" })
-    @IsNotEmpty({ message: "El porcentaje de descuento del producto es un campo requerido" })
-    percentDiscount: number;
-
     @IsString()
     @IsNotEmpty({ message: "El tamaño del producto es un campo requerido" })
     size: string;

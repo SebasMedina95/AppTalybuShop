@@ -70,12 +70,24 @@ export class OrdersPurchaseService {
       let productsProcess: IProducts[] = getProducts.data;
       for (let i = 0; i < createOrdersPurchaseDto.items.length; i++) {
         
-        totalAmount += createOrdersPurchaseDto.items[i].quantity;
-        totalItems += Number(productsProcess[i].price) * createOrdersPurchaseDto.items[i].quantity;
+        totalItems += createOrdersPurchaseDto.items[i].quantity;
+
+        //Verifiquemos el tema de los descuentos de una vez:
+        if(productsProcess[i].isDiscount && productsProcess[i].percentDiscount != 0){
+
+          const valDiscount: number = Number(productsProcess[i].price) * Number(productsProcess[i].percentDiscount / 100);
+          const discountApply: number = Number(productsProcess[i].price) - valDiscount;
+          totalAmount += discountApply * createOrdersPurchaseDto.items[i].quantity;
+
+        }else{
+
+          totalAmount += Number(productsProcess[i].price) * createOrdersPurchaseDto.items[i].quantity;
+
+        }
         
       }
 
-      //? Creamos la transacción (Dos movimientos en un solo)
+      //? Registramos la cabecera de la orden
       const order = await this.prisma.tBL_PURCHASE_ORDER.create({
         data: {
           factureCode: generateFactureCode,
@@ -88,19 +100,27 @@ export class OrdersPurchaseService {
           createDateAt: new Date(),
           userUpdateAt: "123456789", //TODO -> Falta el tema de la auth.
           updateDateAt: new Date(),
-          OrderItems: {              //REGISTRO DINÁMICO en paralelo.
-            createMany: {
-              data: createOrdersPurchaseDto.items.map( (orderItem) => ({
-                quantity: orderItem.quantity,
-                size: orderItem.size,
-                color: orderItem.color,
-                productId: orderItem.productId,
-                price: productsProcess.find( p => p.id === orderItem.productId ).price
-              }))
-            }
-          }
         }
       })
+
+      //? Registramos los detalles de la orden
+      for (let i = 0; i < createOrdersPurchaseDto.items.length; i++){
+
+        await this.prisma.tBL_PURCHARSE_ORDER_ITEMS.create({
+          data: {
+            orderPurchaseId: order.id,
+            quantity: createOrdersPurchaseDto.items[i].quantity,
+            size: createOrdersPurchaseDto.items[i].size,
+            color: createOrdersPurchaseDto.items[i].color,
+            price: productsProcess[i].price,
+            isDiscount: productsProcess[i].isDiscount,
+            percentDiscount: productsProcess[i].percentDiscount,
+            productId: createOrdersPurchaseDto.items[i].productId,
+
+          }
+        })
+
+      }
 
       return new ApiTransactionResponse(
         order,
@@ -170,7 +190,7 @@ export class OrdersPurchaseService {
         this.prisma.tBL_PURCHASE_ORDER.count({ where: whereCondition }),
       ]);
 
-      //getPurchaseOrders = items;
+      getPurchaseOrders = items;
       itemCount = totalItems;
 
       const pageMetaDto = new PageMetaDto({ itemCount, pageOptionsDto });
@@ -203,6 +223,9 @@ export class OrdersPurchaseService {
       const getPurchaseOrder = await this.prisma.tBL_PURCHASE_ORDER.findFirst({
         where: {
           id
+        },
+        include: {
+          OrderItems: true
         }
       });
 
@@ -210,13 +233,41 @@ export class OrdersPurchaseService {
         return new ApiTransactionResponse(
           null,
           EResponseCodes.FAIL,
-          `No pudo ser encontrado una categoría con el ID ${id}`
+          `No pudo ser encontrado una Orden de Pago con el Id ${id}`
         );
       }
 
+      let arrayForValidMsProducts: number[] = [];
+      for (const getIds of getPurchaseOrder.OrderItems) {
+        arrayForValidMsProducts.push(getIds.productId);
+      }
+
+      const getProducts: ApiTransactionResponse<IProducts[]> = await firstValueFrom(
+        this.productsClient.send(
+          { cmd: 'get_products_by_array_ids' }, 
+          arrayForValidMsProducts)
+      )
+
+      if( !getProducts || getProducts.data == null ){
+        return new ApiTransactionResponse(
+          getProducts.operation.message,
+          EResponseCodes.FAIL,
+          `Ocurrió un error al intentar obtener los productos del MS respectivo.`
+        );
+      }
+
+      //? Acomodo el objeto final
+      //* Empatamos el resultado y concatenamos el nombre que nos trae el MS de Products
+      const finalResponse: IOrders = {
+        ...getPurchaseOrder,
+        OrderItems: getPurchaseOrder.OrderItems.map((orderItem) => ({
+          ...orderItem,
+          name: getProducts.data.find((product) => product.id === orderItem.productId).title,
+        })),
+      }
+
       return new ApiTransactionResponse(
-        //getPurchaseOrder,
-        null,
+        finalResponse,
         EResponseCodes.OK,
         `Orden de Pago obtenida correctamente`
       );
@@ -246,20 +297,53 @@ export class OrdersPurchaseService {
     try {
       
       const getPurchaseOrder = await this.prisma.tBL_PURCHASE_ORDER.findFirst({
-        where: { factureCode: code }
+        where: { 
+          factureCode: code 
+        },
+        include: {
+          OrderItems: true
+        }
       });
 
       if( !getPurchaseOrder || getPurchaseOrder == null ){
         return new ApiTransactionResponse(
           null,
           EResponseCodes.FAIL,
-          `No pudo ser encontrado una categoría con el Código de Factura ${code}`
+          `No pudo ser encontrado una Orden de Pago con el Código de Factura ${code}`
         );
       }
 
+      let arrayForValidMsProducts: number[] = [];
+      for (const getIds of getPurchaseOrder.OrderItems) {
+        arrayForValidMsProducts.push(getIds.productId);
+      }
+
+      const getProducts: ApiTransactionResponse<IProducts[]> = await firstValueFrom(
+        this.productsClient.send(
+          { cmd: 'get_products_by_array_ids' }, 
+          arrayForValidMsProducts)
+      )
+
+      if( !getProducts || getProducts.data == null ){
+        return new ApiTransactionResponse(
+          getProducts.operation.message,
+          EResponseCodes.FAIL,
+          `Ocurrió un error al intentar obtener los productos del MS respectivo.`
+        );
+      }
+
+      //? Acomodo el objeto final
+      //* Empatamos el resultado y concatenamos el nombre que nos trae el MS de Products
+      const finalResponse: IOrders = {
+        ...getPurchaseOrder,
+        OrderItems: getPurchaseOrder.OrderItems.map((orderItem) => ({
+          ...orderItem,
+          name: getProducts.data.find((product) => product.id === orderItem.productId).title,
+        })),
+      }
+
       return new ApiTransactionResponse(
-        //getPurchaseOrder,
-        null,
+        finalResponse,
         EResponseCodes.OK,
         `Orden de Pago obtenida correctamente`
       );
@@ -310,8 +394,7 @@ export class OrdersPurchaseService {
       });
 
       return new ApiTransactionResponse(
-        //updatePurchaseOrder,
-        null,
+        updatePurchaseOrder,
         EResponseCodes.OK,
         "Orden de Pago actualizada correctamente"
       );
