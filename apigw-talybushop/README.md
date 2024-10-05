@@ -29,11 +29,14 @@ micros correspondientes y devolver una respuesta.
 
 --------------------------------------------------------------------------------------------
 ### Recordar que el comando de NATS nativo para su uso es:
-NOTA: Para ejecutar este comando debemos estar parados en la carpeta donde esta el archivo de configuración nats.conf para que lo tome.
+``NOTA: Para ejecutar este comando debemos estar parados en la carpeta donde esta el archivo de configuración nats.conf para que lo tome.`` El archivo de configuración lo tendremos solamente acá en el gateway para la
+ejecución, como punto de consideración importante.
 ````
 docker run -d --name talybushop-nats-server -p 4222:4222 -p 8222:8222 -v "${pwd}/nats.conf:/etc/nats/nats.conf" nats:latest -c /etc/nats/nats.conf
 ````
 Donde con --name generamos el nombre de la imagen y definimos los puertos requeridos, para más detalle podríamos
-revisar la documentación en: https://hub.docker.com/_/nats. Para verificar que todo esté en orden podemos ingresar
-al link: http://localhost:8222/ en el ambiente local del sistema. El valor colocado de 1048576 es el equivalente
-al de 10 MB (Ampliamos para las peticiones compuestas de registro de productos por ejemplo)
+revisar la documentación en: https://hub.docker.com/_/nats. Vamos a trabajar con los puertos por defecto que nos
+dice la documentación -p 4222:4222 -p 8222:8222, estos puertos tendrán la configuración inciial. 
+
+Para verificar que todo esté en orden podemos ingresar
+al link: http://localhost:8222/ en el ambiente local del sistema.
