@@ -9,7 +9,7 @@ import {
 } from '@nestjs/common';
 import { ClientProxy, RpcException } from '@nestjs/microservices';
 import { catchError } from 'rxjs';
-import { ORDER_HEADERS_PURCHASE_SERVICE } from '../../config/services';
+import { NATS_SERVICE } from '../../config/services';
 
 import { CreateOrdersPurchaseDto } from '../../validators/orders/orders-purchase-dto/create-orders-purchase.dto';
 import { UpdateOrdersPurchaseDto } from '../../validators/orders/orders-purchase-dto/update-orders-purchase.dto';
@@ -19,7 +19,7 @@ import { PageOptionsDto } from '../../helpers/paginations/dto/page-options.dto';
 export class OrderPurchaseController {
 
     constructor(
-        @Inject(ORDER_HEADERS_PURCHASE_SERVICE) private readonly orderHeaderPurchaseClient: ClientProxy,
+        @Inject(NATS_SERVICE) private readonly natsClient: ClientProxy,
     ) {}
 
     @Post('/create')
@@ -27,7 +27,7 @@ export class OrderPurchaseController {
         @Body() createOrdersPurchaseDto: CreateOrdersPurchaseDto
     ) {
 
-        return this.orderHeaderPurchaseClient.send({ cmd: 'create_order_purchase_header' }, createOrdersPurchaseDto )
+        return this.natsClient.send({ cmd: 'create_order_purchase_header' }, createOrdersPurchaseDto )
         .pipe(
             catchError(err => { throw new RpcException(err) })
         )
@@ -39,7 +39,7 @@ export class OrderPurchaseController {
         @Body() pageOptionsDto: PageOptionsDto
     ) {
         
-        return this.orderHeaderPurchaseClient.send({ cmd: 'get_orders_purchase_headers_paginated' }, pageOptionsDto )
+        return this.natsClient.send({ cmd: 'get_orders_purchase_headers_paginated' }, pageOptionsDto )
         .pipe(
             catchError(err => { throw new RpcException(err) })
         )
@@ -53,7 +53,7 @@ export class OrderPurchaseController {
 
         try {
 
-            return this.orderHeaderPurchaseClient.send({ cmd: 'get_order_purchase_header_by_id' }, { 
+            return this.natsClient.send({ cmd: 'get_order_purchase_header_by_id' }, { 
                 id 
             }).pipe(
                 catchError(err => { throw new RpcException(err) })
@@ -73,7 +73,7 @@ export class OrderPurchaseController {
 
         try {
 
-            return this.orderHeaderPurchaseClient.send({ cmd: 'get_order_purchase_header_by_code' }, { 
+            return this.natsClient.send({ cmd: 'get_order_purchase_header_by_code' }, { 
                 code 
             }).pipe(
                 catchError(err => { throw new RpcException(err) })
@@ -91,7 +91,7 @@ export class OrderPurchaseController {
         @Body() updateOrdersPurchaseDto: UpdateOrdersPurchaseDto
     ) {
 
-        return this.orderHeaderPurchaseClient.send({ cmd: 'change_order_purchase_header_status' }, updateOrdersPurchaseDto )
+        return this.natsClient.send({ cmd: 'change_order_purchase_header_status' }, updateOrdersPurchaseDto )
         .pipe(
             catchError(err => { throw new RpcException(err) })
         )

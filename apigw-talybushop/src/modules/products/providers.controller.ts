@@ -11,7 +11,7 @@ import {
 import { ClientProxy, RpcException } from "@nestjs/microservices";
 import { catchError } from "rxjs";
 
-import { PRODUCTS_SERVICE } from "../../config/services";
+import { NATS_SERVICE } from "../../config/services";
 
 import { CreateProviderDto } from "../../validators/products/providers-dto/create-provider.dto";
 import { UpdateProviderDto } from "../../validators/products/providers-dto/update-provider.dto";
@@ -23,7 +23,7 @@ import { PageOptionsDto } from "../../helpers/paginations/dto/page-options.dto";
 export class ProvidersController{
 
     constructor(
-        @Inject(PRODUCTS_SERVICE) private readonly productsClient: ClientProxy,
+        @Inject(NATS_SERVICE) private readonly natsClient: ClientProxy,
     ) {}
 
     @Post('/create')
@@ -31,7 +31,7 @@ export class ProvidersController{
         @Body() createProviderDto: CreateProviderDto
     ){
         
-        return this.productsClient.send({ cmd: 'create_provider' }, createProviderDto )
+        return this.natsClient.send({ cmd: 'create_provider' }, createProviderDto )
         .pipe(
             catchError(err => { throw new RpcException(err) })
         )
@@ -45,7 +45,7 @@ export class ProvidersController{
       //Lo que tenemos dentro del send, el primer argumento es el nombre que le dimos en el @MessagePattern
       //que en este caso fue { cmd: 'get_providers_paginated' }, y el segundo es el Payload, es decir, el cuerpo
       //de la petición para enviar los parámetros
-      return this.productsClient.send({ cmd: 'get_providers_paginated' }, pageOptionsDto )
+      return this.natsClient.send({ cmd: 'get_providers_paginated' }, pageOptionsDto )
         .pipe(
           catchError(err => { throw new RpcException(err) })
         )
@@ -58,7 +58,7 @@ export class ProvidersController{
 
         try {
 
-        return this.productsClient.send({ cmd: 'get_provider_by_id' }, { 
+        return this.natsClient.send({ cmd: 'get_provider_by_id' }, { 
             id 
         }).pipe(
             catchError(err => { throw new RpcException(err) })
@@ -78,7 +78,7 @@ export class ProvidersController{
         @Body() updateProviderDto: UpdateProviderDto
     ){
         
-        return this.productsClient.send({ cmd: 'update_provider' }, {
+        return this.natsClient.send({ cmd: 'update_provider' }, {
         id,
         ...updateProviderDto
         }).pipe(
@@ -93,7 +93,7 @@ export class ProvidersController{
         @Param('id') id: number
     ){
         
-        return this.productsClient.send({ cmd: 'remove_logic_provider' }, {
+        return this.natsClient.send({ cmd: 'remove_logic_provider' }, {
         id
         }).pipe(
             catchError(err => { throw new RpcException(err) })

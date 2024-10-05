@@ -14,6 +14,7 @@ interface EnvVars {
     CLOUDINARY_NAME: string;
     CLOUDINARY_API_KEY: string;
     CLOUDINARY_API_SECRET: string;
+    NATS_SERVERS: string[];
 }
 
 const envsSchema = joi.object({
@@ -28,10 +29,14 @@ const envsSchema = joi.object({
     DB_TYPE: joi.string().required(),
     CLOUDINARY_NAME: joi.string().required(),
     CLOUDINARY_API_KEY: joi.string().required(),
-    CLOUDINARY_API_SECRET: joi.string().required()
+    CLOUDINARY_API_SECRET: joi.string().required(),
+    NATS_SERVERS: joi.array().items( joi.string() ).required(),
 }).unknown(true);
 
-const { error, value } = envsSchema.validate( process.env )
+const { error, value } = envsSchema.validate({
+    ...process.env,
+    NATS_SERVERS: process.env.NATS_SERVERS?.split(",")
+})
 
 if( error ){
     throw new Error(`Error en la validación de la configuración. Error: ${ error.message }`);
@@ -51,5 +56,6 @@ export const envs = {
     DB_TYPE: envVars.DB_TYPE, 
     CLOUDINARY_NAME: envVars.CLOUDINARY_NAME, 
     CLOUDINARY_API_KEY: envVars.CLOUDINARY_API_KEY, 
-    CLOUDINARY_API_SECRET: envVars.CLOUDINARY_API_SECRET
+    CLOUDINARY_API_SECRET: envVars.CLOUDINARY_API_SECRET,
+    NATS_SERVERS: envVars.NATS_SERVERS,
 }

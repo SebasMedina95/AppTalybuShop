@@ -14,7 +14,7 @@ import { ClientProxy, RpcException } from "@nestjs/microservices";
 import { FilesInterceptor } from "@nestjs/platform-express";
 import { catchError } from "rxjs";
 
-import { PRODUCTS_SERVICE } from "../../config/services";
+import { NATS_SERVICE } from "../../config/services";
 
 import { CreateProductDto } from "../../validators/products/products-dto/create-product.dto";
 import { AddImagesProductDto } from "../../validators/products/products-dto/add-images-product.dto";
@@ -27,7 +27,7 @@ import { PageOptionsDto } from "../../helpers/paginations/dto/page-options.dto";
 export class ProductsController {
 
   constructor(
-    @Inject(PRODUCTS_SERVICE) private readonly productsClient: ClientProxy,
+    @Inject(NATS_SERVICE) private readonly natsClient: ClientProxy,
   ) {}
 
   @Post('/create')
@@ -42,7 +42,7 @@ export class ProductsController {
       createProductDto.imagesProducts = files;
     }
 
-    return this.productsClient.send({ cmd: 'create_product' }, 
+    return this.natsClient.send({ cmd: 'create_product' }, 
         createProductDto
       ).pipe(
         catchError(err => { throw new RpcException(err) })
@@ -55,7 +55,7 @@ export class ProductsController {
     @Body() pageOptionsDto: PageOptionsDto
   ){
 
-    return this.productsClient.send({ cmd: 'get_products_paginated' }, pageOptionsDto )
+    return this.natsClient.send({ cmd: 'get_products_paginated' }, pageOptionsDto )
       .pipe(
         catchError(err => { throw new RpcException(err) })
       )
@@ -69,7 +69,7 @@ export class ProductsController {
 
     try {
 
-      return this.productsClient.send({ cmd: 'get_product_by_id' }, { 
+      return this.natsClient.send({ cmd: 'get_product_by_id' }, { 
         id 
       }).pipe(
           catchError(err => { throw new RpcException(err) })
@@ -95,7 +95,7 @@ export class ProductsController {
       addImagesProductDto.imagesProducts = files;
     }
 
-    return this.productsClient.send({ cmd: 'add_images_product' }, 
+    return this.natsClient.send({ cmd: 'add_images_product' }, 
         addImagesProductDto
       ).pipe(
         catchError(err => { throw new RpcException(err) })
@@ -108,7 +108,7 @@ export class ProductsController {
     @Body() removeImagesProductDto: RemoveImagesProductDto
   ){
 
-    return this.productsClient.send({ cmd: 'remove_images_product' }, removeImagesProductDto )
+    return this.natsClient.send({ cmd: 'remove_images_product' }, removeImagesProductDto )
       .pipe(
         catchError(err => { throw new RpcException(err) })
       )
@@ -122,7 +122,7 @@ export class ProductsController {
     @Body() updateProductDto: UpdateProductDto
   ){
 
-    return this.productsClient.send({ cmd: 'update_product' }, {
+    return this.natsClient.send({ cmd: 'update_product' }, {
         id,
         ...updateProductDto
       }).pipe(
@@ -136,7 +136,7 @@ export class ProductsController {
     @Param('id') id: number
   ){
     
-    return this.productsClient.send({ cmd: 'remove_logic_product' }, {
+    return this.natsClient.send({ cmd: 'remove_logic_product' }, {
       id
     }).pipe(
       catchError(err => { throw new RpcException(err) })

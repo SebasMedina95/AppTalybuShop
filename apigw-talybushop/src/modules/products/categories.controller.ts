@@ -9,7 +9,7 @@ import { Body,
 import { ClientProxy, RpcException } from '@nestjs/microservices';
 import { catchError, firstValueFrom } from 'rxjs';
 
-import { PRODUCTS_SERVICE } from '../../config/services';
+import { NATS_SERVICE } from '../../config/services';
 import { PageOptionsDto } from '../../helpers/paginations/dto/page-options.dto';
 import { CreateCategoryDto } from '../../validators/products/categories-dto/create-category.dto';
 import { UpdateCategoryDto } from '../../validators/products/categories-dto/update-category.dto';
@@ -19,7 +19,7 @@ import { UpdateCategoryDto } from '../../validators/products/categories-dto/upda
 export class CategoriesController {
 
   constructor(
-    @Inject(PRODUCTS_SERVICE) private readonly productsClient: ClientProxy,
+    @Inject(NATS_SERVICE) private readonly natsClient: ClientProxy,
   ) {}
 
   @Post('/create')
@@ -27,7 +27,7 @@ export class CategoriesController {
     @Body() createCategoryDto: CreateCategoryDto
   ){
     
-    return this.productsClient.send({ cmd: 'create_category' }, createCategoryDto )
+    return this.natsClient.send({ cmd: 'create_category' }, createCategoryDto )
       .pipe(
         catchError(err => { throw new RpcException(err) })
       )
@@ -38,13 +38,12 @@ export class CategoriesController {
   async getAllCategories(
     @Body() pageOptionsDto: PageOptionsDto
   ){
-    //Lo que tenemos dentro del send, el primer argumento es el nombre que le dimos en el @MessagePattern
-    //que en este caso fue { cmd: 'get_category_paginated' }, y el segundo es el Payload, es decir, el cuerpo
-    //de la petición para enviar los parámetros
-    return this.productsClient.send({ cmd: 'get_category_paginated' }, pageOptionsDto )
+
+    return this.natsClient.send({ cmd: 'get_category_paginated' }, pageOptionsDto )
       .pipe(
         catchError(err => { throw new RpcException(err) })
       )
+      
   }
 
   @Get('/get-by-id/:id')
@@ -54,7 +53,7 @@ export class CategoriesController {
 
     try {
 
-      return this.productsClient.send({ cmd: 'get_category_by_id' }, { 
+      return this.natsClient.send({ cmd: 'get_category_by_id' }, { 
         id 
       }).pipe(
           catchError(err => { throw new RpcException(err) })
@@ -74,7 +73,7 @@ export class CategoriesController {
     @Body() updateCategoryDto: UpdateCategoryDto
   ){
     
-    return this.productsClient.send({ cmd: 'update_category' }, {
+    return this.natsClient.send({ cmd: 'update_category' }, {
       id,
       ...updateCategoryDto
     }).pipe(
@@ -89,7 +88,7 @@ export class CategoriesController {
     @Param('id') id: number
   ){
     
-    return this.productsClient.send({ cmd: 'delete_logic_category' }, {
+    return this.natsClient.send({ cmd: 'delete_logic_category' }, {
       id
     }).pipe(
       catchError(err => { throw new RpcException(err) })
@@ -104,7 +103,7 @@ export class CategoriesController {
 
     try {
 
-      return this.productsClient.send({ cmd: 'get_sub_categories_by_category' }, { 
+      return this.natsClient.send({ cmd: 'get_sub_categories_by_category' }, { 
         id 
       }).pipe(
           catchError(err => { throw new RpcException(err) })

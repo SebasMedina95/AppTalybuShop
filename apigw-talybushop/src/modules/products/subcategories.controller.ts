@@ -7,7 +7,7 @@ import { Body,
          Patch, 
          Post } from "@nestjs/common";
 import { ClientProxy, RpcException } from "@nestjs/microservices";
-import { PRODUCTS_SERVICE } from "../../config/services";
+import { NATS_SERVICE } from "../../config/services";
 import { CreateSubCategoryDto } from "../../validators/products/sub-categories-dto/create-sub-category.dto";
 import { UpdateSubCategoryDto } from "../../validators/products/sub-categories-dto/update-sub-category.dto";
 import { catchError } from "rxjs";
@@ -18,7 +18,7 @@ import { PageOptionsDto } from "src/helpers/paginations/dto/page-options.dto";
 export class SubCategoriesController{
 
     constructor(
-        @Inject(PRODUCTS_SERVICE) private readonly productsClient: ClientProxy,
+        @Inject(NATS_SERVICE) private readonly natsClient: ClientProxy,
     ) {}
 
     @Post('/create')
@@ -26,7 +26,7 @@ export class SubCategoriesController{
         @Body() createSubCategoryDto: CreateSubCategoryDto
     ){
         
-        return this.productsClient.send({ cmd: 'create_sub_category' }, createSubCategoryDto )
+        return this.natsClient.send({ cmd: 'create_sub_category' }, createSubCategoryDto )
         .pipe(
             catchError(err => { throw new RpcException(err) })
         )
@@ -40,7 +40,7 @@ export class SubCategoriesController{
         //Lo que tenemos dentro del send, el primer argumento es el nombre que le dimos en el @MessagePattern
         //que en este caso fue { cmd: 'get_sub_category_paginated' }, y el segundo es el Payload, es decir, el cuerpo
         //de la petición para enviar los parámetros
-        return this.productsClient.send({ cmd: 'get_sub_category_paginated' }, pageOptionsDto )
+        return this.natsClient.send({ cmd: 'get_sub_category_paginated' }, pageOptionsDto )
         .pipe(
             catchError(err => { throw new RpcException(err) })
         )
@@ -53,7 +53,7 @@ export class SubCategoriesController{
 
         try {
 
-        return this.productsClient.send({ cmd: 'get_sub_category_by_id' }, { 
+        return this.natsClient.send({ cmd: 'get_sub_category_by_id' }, { 
             id 
         }).pipe(
             catchError(err => { throw new RpcException(err) })
@@ -73,7 +73,7 @@ export class SubCategoriesController{
         @Body() updateCategoryDto: UpdateSubCategoryDto
     ){
         
-        return this.productsClient.send({ cmd: 'update_sub_category' }, {
+        return this.natsClient.send({ cmd: 'update_sub_category' }, {
         id,
         ...updateCategoryDto
         }).pipe(
@@ -87,7 +87,7 @@ export class SubCategoriesController{
         @Param('id') id: number
     ){
         
-        return this.productsClient.send({ cmd: 'delete_logic_sub_category' }, {
+        return this.natsClient.send({ cmd: 'delete_logic_sub_category' }, {
         id
         }).pipe(
             catchError(err => { throw new RpcException(err) })
