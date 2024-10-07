@@ -20,8 +20,7 @@ import { PageDto } from '../../helpers/paginations/dto/page.dto';
 import { PageMetaDto } from '../../helpers/paginations/dto/page-meta.dto';
 
 import { IOrders } from './interfaces/orders.interface';
-import { PRODUCTS_SERVICE } from '../../config/services';
-import { OrderPurchaseItemDto } from './dto/item-order-purchase.dto';
+import { NATS_SERVICE } from '../../config/services';
 import { IProducts } from './interfaces/products.interface';
 
 @Injectable()
@@ -32,7 +31,7 @@ export class OrdersPurchaseService {
 
   constructor(
     private prisma: PrismaService,
-    @Inject(PRODUCTS_SERVICE) private readonly productsClient: ClientProxy,
+    @Inject(NATS_SERVICE) private readonly natsClient: ClientProxy,
   ){}
 
   async create(
@@ -45,7 +44,7 @@ export class OrdersPurchaseService {
       //* Recordemos que para trabajar la promesa debemos usar firstValueFrom
       //* pues inicialmente hablamos de un Observable()
       const getProducts: ApiTransactionResponse<any[]> = await firstValueFrom(
-        this.productsClient.send(
+        this.natsClient.send(
           { cmd: 'validate_products_for_purcharse_orders' }, 
           createOrdersPurchaseDto.items)
       )
@@ -243,7 +242,7 @@ export class OrdersPurchaseService {
       }
 
       const getProducts: ApiTransactionResponse<IProducts[]> = await firstValueFrom(
-        this.productsClient.send(
+        this.natsClient.send(
           { cmd: 'get_products_by_array_ids' }, 
           arrayForValidMsProducts)
       )
@@ -319,7 +318,7 @@ export class OrdersPurchaseService {
       }
 
       const getProducts: ApiTransactionResponse<IProducts[]> = await firstValueFrom(
-        this.productsClient.send(
+        this.natsClient.send(
           { cmd: 'get_products_by_array_ids' }, 
           arrayForValidMsProducts)
       )

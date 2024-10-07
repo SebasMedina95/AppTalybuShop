@@ -24,8 +24,9 @@ micros correspondientes y devolver una respuesta.
 1. Clonar repositorio.
 2. Instalar dependencias con el comando ``npm install``
 3. Crear archivo ``.env`` basado en el ``.env.template``
-4. Levantar los micro servicios que generan dependencias
-5. Levantar este micro usando el comando ``npm run start:dev``
+4. Levantar el servidor de NATS (Verificación)
+5. Levantar los micro servicios que generan dependencias
+6. Levantar este micro usando el comando ``npm run start:dev``
 
 --------------------------------------------------------------------------------------------
 ### Recordar que el comando de NATS nativo para su uso es:

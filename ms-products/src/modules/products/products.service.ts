@@ -120,7 +120,11 @@ export class ProductsService {
     if( !getSubCategory ) return CustomError.badRequestError(`No existe la sub categoría que intenta seleccionar`);
     if( !getProvider ) return CustomError.badRequestError(`No existe el proveedor que intenta seleccionar`);
 
-    //* 8. Guardamos (Solo el producto sin imágenes aún).
+    //* 8 Conversiones de booleanos requeridas (Cómo es form-data para evitar problemas)
+    const isDiscountValue: boolean = ( createProductDto.isDiscount == "true" ) ? true : false;
+    const isFragileValue: boolean = ( createProductDto.is_fragile == "true" ) ? true : false;
+
+    //* 9. Guardamos (Solo el producto sin imágenes aún).
     const saveProduct = await this.prisma.tBL_PRODUCTS.create({
       data: {
         description: createProductDto.description,
@@ -133,11 +137,11 @@ export class ProductsService {
         slug,
         type: JSON.stringify(typeValid), //Se guardan arrays como Strings
         brand: createProductDto.brand,
-        isDiscount: createProductDto.isDiscount,
+        isDiscount: isDiscountValue,
         percentDiscount: createProductDto.percentDiscount,
         discountStartDate: createProductDto.discountStartDate,
         discountEndDate: createProductDto.discountEndDate,
-        is_fragile: createProductDto.is_fragile,
+        is_fragile: isFragileValue,
         views: 0,
         monthsWarranty: createProductDto.monthsWarranty,
         status: true,
@@ -455,6 +459,10 @@ export class ProductsService {
         }
       }
 
+      //Conversiones de booleanos requeridas (Cómo es form-data para evitar problemas)
+      const isDiscountValue: boolean = ( updateProductDto.isDiscount == "true" ) ? true : false;
+      const isFragileValue: boolean = ( updateProductDto.is_fragile == "true" ) ? true : false;
+
       //Actualizamos
       const updateProduct = await this.prisma.tBL_PRODUCTS.update({
         where: { id },
@@ -469,11 +477,11 @@ export class ProductsService {
           slug,
           type: JSON.stringify(typeValid), //Se guardan arrays como Strings
           brand: updateProductDto.brand,
-          isDiscount: updateProductDto.isDiscount,
+          isDiscount: isDiscountValue,
           percentDiscount: updateProductDto.percentDiscount,
           discountStartDate: updateProductDto.discountStartDate,
           discountEndDate: updateProductDto.discountEndDate,
-          is_fragile: updateProductDto.is_fragile,
+          is_fragile: isFragileValue,
           views: 0,
           monthsWarranty: updateProductDto.monthsWarranty,
           status: true,

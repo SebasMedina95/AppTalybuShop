@@ -26,6 +26,17 @@ enum ValidSizes {
   MEDIUM
   BIG
   NA
+  T34
+  T35
+  T36
+  T37
+  T38
+  T39
+  T40
+  T41
+  T42
+  T43
+  T44
 }
 
 model TBL_CATEGORIES {
@@ -78,7 +89,7 @@ model TBL_PRODUCTS {
   percentDiscount   Float?
   discountStartDate DateTime?
   discountEndDate   DateTime?
-  is_fragile        Boolean
+  is_fragile        Boolean?  @default(false)
   views             Int       @default(0)
   monthsWarranty    Int
   status            Boolean   @default(true)

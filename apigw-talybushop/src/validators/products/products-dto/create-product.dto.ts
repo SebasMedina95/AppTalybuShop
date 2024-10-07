@@ -56,9 +56,9 @@ export class CreateProductDto {
     @IsNotEmpty({ message: "La marca es un campo requerido" })
     public brand: string;
 
-    @IsBoolean({ message: "Tiene descuento debe ser un boolean valido" })
+    @IsString({ message: "Tiene descuento debe ser un boolean valido" })
     @IsNotEmpty({ message: "Tiene descuento es un campo requerido" })
-    public isDiscount: boolean;
+    public isDiscount: string; //Como trabajamos form-data, mejor enviarlo como String y lo convertimos programaticamente
 
     @IsNumber({ maxDecimalPlaces: 2 }, { message: "Porcentaje de descuento debe ser numérico" })
     @Min(0)
@@ -73,9 +73,9 @@ export class CreateProductDto {
     @IsNotEmpty({ message: "El fin de la fecha es un campo requerido" })
     public discountEndDate: Date;
 
-    @IsBoolean({ message: "Es frágil debe ser un boolean valido" })
+    @IsString({ message: "Es frágil debe ser un boolean valido" })
     @IsNotEmpty({ message: "Es frágil es un campo requerido" })
-    public is_fragile: boolean;
+    public is_fragile: string; //Como trabajamos form-data, mejor enviarlo como String y lo convertimos programaticamente
 
     @IsNumber({ maxDecimalPlaces: 2 }, { message: "Meses de garantía debe ser numérico" })
     @IsPositive()

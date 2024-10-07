@@ -24,5 +24,6 @@ La aplicación tiene implementada el adjunto de archivos para las imágenes y el
 2. Instalar dependencias con el comando ``npm install``
 3. Crear archivo ``.env`` basado en el ``.env.template``
 4. Levantar los micro servicios que generan dependencias
-5. Levantar la base de datos con ``docker-compose up -d``
-6. Levantar este micro usando el comando ``npm run start:dev``
+5. Levantar el servidor de NATS (Verificación)
+6. Levantar la base de datos con ``docker-compose up -d``
+7. Levantar este micro usando el comando ``npm run start:dev``
