@@ -1,0 +1,14 @@
+version: '3.8'
+
+services:
+  apigw-talybu:
+    build: .
+    image: apigw-image-talybu
+    ports:
+      - "22000:22000"
+    volumes:
+      - ./src:/usr/src/app/src
+    command: npm run start:dev
+    environment:
+      - PORT=22000
+      - NATS_SERVERS=nats://localhost:4222

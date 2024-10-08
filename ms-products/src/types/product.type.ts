@@ -21,6 +21,8 @@ export type ValidTypes =
 'MIXED';
 
 export const ValidSizesArray = [
+    'XXXS',
+    'XXS',
     'XS',
     'S',
     'M',
@@ -33,6 +35,8 @@ export const ValidSizesArray = [
     'MEDIUM',
     'BIG',
     'NA',
+    'T32',
+    'T33',
     'T34',
     'T35',
     'T36',
@@ -44,6 +48,7 @@ export const ValidSizesArray = [
     'T42',
     'T43',
     'T44',
+    'T45',
 ];
 
 export const ValidTypesArray = [

@@ -14,6 +14,8 @@ datasource db {
 }
 
 enum ValidSizes {
+  XXXS
+  XXS
   XS
   S
   M
@@ -26,6 +28,8 @@ enum ValidSizes {
   MEDIUM
   BIG
   NA
+  T32
+  T33
   T34
   T35
   T36
@@ -37,6 +41,7 @@ enum ValidSizes {
   T42
   T43
   T44
+  T45
 }
 
 model TBL_CATEGORIES {

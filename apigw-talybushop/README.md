@@ -41,3 +41,11 @@ dice la documentación -p 4222:4222 -p 8222:8222, estos puertos tendrán la conf
 
 Para verificar que todo esté en orden podemos ingresar
 al link: http://localhost:8222/ en el ambiente local del sistema.
+
+--------------------------------------------------------------------------------------------
+### Levantar Aplicación / Construir el contenedor y la imagen simultaneamente:
+Ejecutemos el siguiente comando para crear la imagen y montar el contenedor:
+````
+docker-compose --project-name apigw-container-talybu up --build -d
+````
+En este comando, le colocamos el nombre personalizado al contenedor de ``apigw-container-talybu`` usando --project-name.
