@@ -69,5 +69,47 @@ proyecto:
 | Testimoniales | `Sin_Empezar`   | -                  | Opiniones de productos por clientes      |-|
 | Informes      | `Sin_Empezar`   | -                  | Reportería de los productos              |-|
 
+### Comandos para despliegue en desarrollo.
+Ubicados en cada microservicio levantamos el docker-compose que corresponda, cada micro tiene su docker-compose
+excepto el el API GATEWAY, este tiene dos, uno que es el propio del micro y otro que viene siendo para NATS, el
+cual tiene una configuración específica para operar. En este orden de ideas, lo primero es levantar/crear la red
+en la que estarán funcionando los micros, para ello, podemos usar los comandos:
+
+* Para listar las redes y verificar: ``docker network ls``
+* Para crear la red si no está: ``docker network create talybu_network``
+* Para inspeccionar que los contenedores estén en la misma red: ``docker network inspect talybu_network``
+
+Ahora, para el tema de los contenedores, lo harémos por micro servicios:
+1. **API GATEWAY (apigw-talybushop)**
+* Primero levantamos el contenedor de NATS usando el comando:
+
+``docker-compose -f docker-compose-nats.yml --project-name nats-container-talybu up --build -d``
+
+* Segundo levantamos el gateway para la comunicación con los micros:
+
+``docker-compose -f docker-compose.yml --project-name apigw-container-talybu up --build -d``
 
 
+2. **MICRO SERVICIO DE PRODUCTOS (ms-products)**
+* Ejecutamos el comando:
+
+``docker-compose -f docker-compose.yml --project-name products-container-talybu up --build -d``
+
+3. **MICRO SERVICIO DE ORDENES (ms-orders-headers)**
+
+``docker-compose -f docker-compose.yml --project-name orders-container-talybu up --build -d``
+
+
+Al ejecutar el de cada micro servicio, por medio de Docker Desktop o por medio de la terminal de comandos debemos
+verificar el estado de los contenedores, que no exista ningún problema. Si todo funciona bien, los puertos estarán
+adecuadamente conectados para tomar la información y conectarnos externamente a la base de datos. A continuación
+proporcionamos un ejemplo de conexión:
+
+
+| Configuración         | Valor                     | |
+|-----------------------|---------------------------|-|
+| **HOST**              | localhost                 |-|
+| **PORT**              | 25001                     |-|
+| **BASE DE DATOS**     | talybushop-products-db    |-|
+| **NOMBRE DE USUARIO** | user-products-talybushop  |-|
+| **CONTRASEÑA**        | talybushop-products-12345 |-|

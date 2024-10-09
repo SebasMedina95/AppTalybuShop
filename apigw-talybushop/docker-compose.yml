@@ -11,4 +11,11 @@ services:
     command: npm run start:dev
     environment:
       - PORT=22000
-      - NATS_SERVERS=nats://localhost:4222
+      - NATS_SERVERS=nats://nats-talybu:4222
+    networks:
+      - talybu-network
+
+networks:
+  talybu-network:
+    external: true
+    name: talybu_network

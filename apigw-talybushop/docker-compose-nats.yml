@@ -1,0 +1,19 @@
+
+version: '3.8'
+
+services:
+  nats-talybu:
+    image: nats:latest
+    container_name: nats-server-talybu
+    ports:
+      - "8222:8222"
+    volumes:
+      - ./src/config/nats.conf:/nats.conf  # Montar el archivo de configuración
+    command: ["-c", "/nats.conf"]  # Usar el archivo de configuración
+    networks:
+      - talybu-network
+
+networks:
+  talybu-network:
+    external: true
+    name: talybu_network

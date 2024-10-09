@@ -2,15 +2,46 @@ version: '3.8'
 
 services:
 
-  postgres-db:
+  products-talybu-db:
     image: postgres:16.4
     restart: always
     environment:
       POSTGRES_USER: ${DB_USER}
       POSTGRES_DB: ${DB_NAME}
       POSTGRES_PASSWORD: ${DB_PASSWORD}
-    container_name: apptalybushop_msproducts
+    container_name: msproducts_db_talybu
     volumes:
       - ./containers/postgres:/var/lib/postgresql/data
     ports:
       - 25001:5432
+    networks:
+      - talybu-network
+
+  products-talybu:
+    build: .
+    image: products-image-talybu
+    ports:
+      - "22001:22001"
+    volumes:
+      - ./src:/usr/src/app/src
+    command: npm run start:dev
+    environment:
+      - PORT=22001
+      - NATS_SERVERS=nats://nats-talybu:4222
+      - DB_USER=${DB_USER}
+      - DB_NAME=${DB_NAME}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - DB_PORT=${DB_PORT}
+      - DB_HOST=${DB_HOST}
+      - DB_TYPE=${DB_TYPE}
+      - CLOUDINARY_NAME=${CLOUDINARY_NAME}
+      - CLOUDINARY_API_KEY=${CLOUDINARY_API_KEY}
+      - CLOUDINARY_API_SECRET=${CLOUDINARY_API_SECRET}
+      - DATABASE_URL=${DATABASE_URL}
+    networks:
+      - talybu-network
+
+networks:
+  talybu-network:
+    external: true
+    name: talybu_network
